@@ -4,7 +4,7 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "shajarat-adam"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "8382880c-abcd-42ef-8ce5-ed7653619c62"
 migrations_dir = "migrations"
 [[r2_buckets]]
 binding = "MEDIA"
