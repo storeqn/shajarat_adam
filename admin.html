@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#141414"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="إدارة شجرة آدم"><link rel="icon" type="image/webp" href="assets/images/logo.svg"><link rel="apple-touch-icon" sizes="192x192" href="assets/images/logo.svg"><link rel="manifest" href="admin-manifest.json">
+<title>إدارة حلويات شجرة آدم</title>
+<style>
+:root{--black:#151515;--yellow:#f4c928;--bg:#f5f4ef}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,Tahoma,sans-serif;color:var(--black);padding-bottom:30px}button,input,textarea,select{font:inherit}input:not([type=checkbox]),textarea,select{font-size:16px}html{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{overflow-x:hidden}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}[hidden]{display:none!important}.shell{max-width:960px;margin:auto;padding:0 15px}.top{background:#141414;color:#fff;padding:24px 0 32px;border-radius:0 0 25px 25px}.top .bar{display:flex;justify-content:space-between;align-items:center;gap:10px}.top h1{font-size:24px;margin:0 0 5px}.top p{color:#aaa;margin:0;font-size:13px}.top a{background:#333;color:#fff;text-decoration:none;border-radius:10px;padding:10px;white-space:nowrap;font-size:13px}.controls{display:flex;gap:10px;margin:-18px 0 20px;position:relative}.controls input{flex:1;min-width:0;border:1px solid #ddd;background:#fff;border-radius:13px;padding:14px;outline:0;box-shadow:0 8px 25px #0001}.primary{border:0;background:var(--yellow);color:#111;border-radius:13px;padding:13px 17px;font-weight:800}.summary{font-size:13px;color:#666;margin-bottom:13px}.grid{display:grid;gap:10px}.card{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7e5dc;border-radius:16px;padding:12px}.thumb{width:64px;height:64px;border-radius:12px;background:var(--yellow);object-fit:cover;flex:none;display:grid;place-items:center;font-weight:900;font-size:12px}.details{min-width:0;flex:1}.details h2{font-size:15px;margin:0 0 5px;overflow-wrap:anywhere}.details small{color:#777}.details .prices{display:flex;gap:8px;align-items:center;margin-top:5px;font-weight:900}.prices del{color:#999;font-size:12px}.card button{border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:9px}.badge{font-size:11px;color:#8a6400;background:#fff0af;padding:2px 5px;border-radius:5px}.inactive{opacity:.55}.shade{position:fixed;inset:0;z-index:9;background:#0009}.panel{position:fixed;z-index:10;inset:0 0 0 auto;width:min(100%,560px);background:#fff;display:flex;flex-direction:column;box-shadow:0 0 40px #0005}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:17px;border-bottom:1px solid #eee}.panel-head h2{margin:0;font-size:21px}.close{border:0;background:#eee;border-radius:50%;width:38px;height:38px;font-size:23px}.panel-body{padding:16px;overflow:auto;flex:1}.form-grid{display:grid;gap:11px}.form-grid label{display:grid;gap:5px;font-size:13px;font-weight:750}.form-grid input:not([type=checkbox]),.form-grid textarea,.form-grid select{border:1px solid #d8d6cf;border-radius:10px;padding:11px;width:100%;background:#fff;outline:0}.form-grid input:focus,.form-grid textarea:focus{border-color:#c19b14}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.checks{display:flex;flex-wrap:wrap;gap:12px}.checks label{display:flex;align-items:center;gap:7px;background:#f7f6f1;border-radius:10px;padding:9px 12px}.checks input{accent-color:#181818}.preview{width:120px;height:120px;object-fit:cover;border-radius:13px;border:1px solid #eee}.hint{color:#777;font-size:12px;line-height:1.5}.panel-foot{padding:13px 16px 18px;border-top:1px solid #eee;display:flex;gap:10px;background:#fff}.panel-foot .primary{flex:1}.danger{border:1px solid #d8aaaa;background:#fff;color:#a12424;border-radius:12px;padding:10px}.message{position:fixed;z-index:30;bottom:18px;left:50%;transform:translateX(-50%);background:#171717;color:#fff;border-radius:12px;padding:11px 15px;max-width:92vw;text-align:center;box-shadow:0 5px 22px #0005}.error{color:#ab2525;font-size:13px;margin:0}@media(min-width:650px){.grid{grid-template-columns:1fr 1fr}.panel{border-radius:16px 0 0 16px}}@media(max-width:350px){.two{grid-template-columns:1fr}.top a{font-size:11px;padding:8px}.controls .primary{padding:10px}}
+.admin-brand{display:flex;align-items:center;gap:10px;min-width:0}.admin-brand img{width:56px;height:56px;border-radius:14px;object-fit:cover;border:1px solid #f4c928;flex:none}.admin-brand h1{font-size:clamp(17px,5vw,24px)}.admin-brand p{font-size:12px}@media(max-width:350px){.admin-brand img{width:42px;height:42px}.admin-brand h1{font-size:16px}}
+.description-help{margin:-5px 0 4px;color:#666;font-size:12px;line-height:1.5}.dish-description{margin:6px 0 0;color:#555;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.dish-description.missing{color:#9b7650}.description-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 14px}.description-tools button{border:1px solid #d8d0ad;border-radius:10px;background:#fff;padding:7px 11px;color:#2d2b23;font-weight:700}.description-tools button[aria-pressed=true]{background:#f4c928;border-color:#e7bd25}
+</style></head>
+<body>
+<header class="top"><div class="shell bar"><div class="admin-brand"><img src="assets/images/logo.svg" alt="شعار مطعم شجرة آدم" width="56" height="56"><div><h1>إدارة حلويات شجرة آدم</h1><p>المنتجات والأسعار والعروض والصور</p></div></div><a href="https://storeqn.github.io/alyasiri-menu/" target="_blank" rel="noopener">عرض المنيو ↗</a></div></header>
+<main class="shell"><div class="controls"><input id="search" type="search" placeholder="ابحث عن منتج أو قسم..." aria-label="البحث عن صنف"><button class="primary" id="add" type="button">+ إضافة</button></div><div class="summary" id="summary">جارِ تحميل المنتجات...</div><div class="description-tools"><button id="missingDescriptions" type="button" aria-pressed="false">عرض الأطباق بلا وصف</button><span id="descriptionCount" class="hint"></span></div><p class="hint" id="setupHint" hidden>تأكد من اتصال الإنترنت، ثم أعد فتح لوحة الإدارة. إذا استمر التأخير يمكنك استخدام الرابط التالي: <a href="https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/edit" target="_blank" rel="noopener">افتح لوحة الإدارة الحالية</a>.</p><div class="grid" id="list"></div></main>
+<div class="shade" id="shade" hidden></div>
+<section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="formTitle" hidden>
+<div class="panel-head"><h2 id="formTitle">إضافة منتج</h2><button class="close" id="close" type="button" aria-label="إغلاق">×</button></div>
+<div class="panel-body"><form id="form" class="form-grid">
+<label>اسم المنتج *<input id="name" required maxlength="120"></label>
+<div class="two"><label>السعر الحالي بالدينار *<input id="price" type="number" min="0" step="1" inputmode="numeric" required></label><label>القسم *<input id="category" list="categoryOptions" required><datalist id="categoryOptions"></datalist></label></div>
+<label>الوصف والوزن والتفاصيل<textarea id="description" rows="3" maxlength="500" placeholder="مثال: اكتب المكونات، الصوص، وما يرافق المنتج..." aria-describedby="descriptionHelp"></textarea></label><p class="description-help" id="descriptionHelp">يظهر هذا الوصف أسفل اسم الطبق في المنيو. اكتب التفاصيل الصحيحة لكل منتج ثم اضغط حفظ المنتج.</p>
+<label>رابط الصورة المباشر<input id="image" type="url" placeholder="https://... أو ارفع صورة أدناه"></label>
+<label>أو اختر صورة من الهاتف<input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<div><img id="preview" class="preview" alt="معاينة صورة المنتج" hidden><button id="removeImage" type="button" hidden>إزالة الصورة</button></div>
+<p class="hint">تُصغّر الصورة تلقائياً قبل الرفع. الصورة المرفوعة تكون متاحة لعرضها في المنيو العام.</p>
+<div class="checks"><label><input id="active" type="checkbox" checked> ظاهر في المنيو</label><label><input id="offer" type="checkbox"> عرض خاص</label></div>
+<div id="offerFields" class="two" hidden><label>السعر القديم قبل العرض<input id="oldPrice" type="number" min="0" step="1" inputmode="numeric"></label><label>علامة إضافية<input id="badge" placeholder="الأكثر طلباً / جديد"></label></div>
+<label id="badgeGeneral">علامة المنتج<input id="badgePlain" placeholder="الأكثر طلباً / جديد"></label>
+<p id="error" class="error" role="alert" hidden></p>
+</form></div>
+<div class="panel-foot"><button id="delete" class="danger" type="button" hidden>حذف</button><button id="save" class="primary" type="button">حفظ المنتج</button></div></section>
+<div id="message" class="message" role="status" hidden></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let products=[],editing=null,pendingImage=null,busy=false,onlyMissingDescriptions=false;
+const money=n=>Number(n).toLocaleString('en-US')+' د.ع';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const API=''; // Add the published Shajarat Adam Apps Script URL after deploying the owner's script.
+const SHEET='https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/gviz/tq';
+let callbackIndex=0;
+function getJSONP(params,url=API,sheetQuery=false,timeout=25000){
+ return new Promise((resolve,reject)=>{
+  const callback='shajaratAdamCallback_'+(++callbackIndex)+'_'+Date.now();
+  const script=document.createElement('script');
+  const timer=setTimeout(()=>finish(new Error('انتهت مهلة الاتصال بالخادم')),timeout);
+  function finish(err,data){clearTimeout(timer);delete window[callback];script.remove();err?reject(err):resolve(data)}
+  window[callback]=data=>finish(null,data);
+  script.onerror=()=>finish(new Error('تعذر الاتصال بالخادم'));
+  const query=sheetQuery?{...params,tqx:'out:json;responseHandler:'+callback,nonce:Date.now()}:{...params,callback,nonce:Date.now()};
+  script.src=url+'?'+new URLSearchParams(query);
+  document.head.appendChild(script);
+ });
+}
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function sheetProducts(){
+ const response=await getJSONP({sheet:'المنتجات',tq:'select A,B,C,D,E,F,G,H,I,J where B is not null'},SHEET,true,30000);
+ if(response?.status!=='ok'||!Array.isArray(response.table?.rows))throw new Error('تعذر قراءة الشيت');
+ const items=response.table.rows.map(row=>{
+  const c=row.c||[],v=i=>c[i]?.v;
+  const id=Number(v(0)),name=String(v(1)||'').trim(),price=Number(v(2)),category=String(v(3)||'').trim();
+  if(!Number.isSafeInteger(id)||!name||!Number.isFinite(price)||!category)return null;
+  return {id,name,price,category,description:String(v(4)||''),image:String(v(5)||''),badge:String(v(6)||''),active:v(7)!==false&&String(v(7)).toLowerCase()!=='false',old_price:Number(v(8))||0,offer:v(9)===true||String(v(9)).toLowerCase()==='true'};
+ }).filter(Boolean);
+ if(!items.length)throw new Error('الشيت فارغ');
+ return items;
+}
+async function server(method,...args){
+ if(method!=='listProducts'&&!API)throw new Error('الحفظ متوقف حتى ربط Apps Script المالك. لا تضع رابط مطعم الياسري.');
+ if(method==='listProducts'){
+  return API?Promise.any([sheetProducts(),getJSONP({action:'listProducts'}).then(response=>{if(!response.ok)throw new Error(response.error||'تعذر تحميل المنتجات');return response.result})]):sheetProducts();
+ }
+ const requestId=crypto.randomUUID();
+ // الطلب بسيط حتى يقبله المتصفح عبر النطاقين؛ تُفحص النتيجة من الخادم بعد الإرسال.
+ await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:method,args,requestId})});
+ for(let attempt=0;attempt<25;attempt++){
+  await pause(650);
+  const response=await getJSONP({action:'status',requestId});
+  if(response.pending)continue;
+  if(!response.ok)throw new Error(response.error||'تعذر حفظ التغيير');
+  return response.result;
+ }
+ throw new Error('لم يصل تأكيد الحفظ. افتح الشيت للتحقق قبل إعادة المحاولة.');
+}
+let noticeTimer;
+function notice(text){$('message').textContent=text;$('message').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('message').hidden=true,2600)}
+function error(text){$('error').textContent=text;$('error').hidden=false}
+function setBusy(state){busy=state;$('save').disabled=state;$('delete').disabled=state;$('save').textContent=state?'جارِ الحفظ...':'حفظ المنتج'}
+function render(){
+ const q=$('search').value.trim().toLowerCase();
+ const found=products.filter(p=>(p.name+' '+p.category+' '+(p.description||'')).toLowerCase().includes(q)&&(!onlyMissingDescriptions||!String(p.description||'').trim()));
+ $('summary').textContent=found.length+' صنف'+(q||onlyMissingDescriptions?' من أصل '+products.length:'');
+ $('descriptionCount').textContent=products.filter(p=>!String(p.description||'').trim()).length+' طبق بلا وصف';
+ $('list').innerHTML=found.map(p=>'<article class="card'+(p.active?'':' inactive')+'">'+(p.image?'<img class="thumb" src="'+esc(p.image)+'" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'thumb\',textContent:\'شجرة آدم\'}))">':'<div class="thumb">شجرة آدم</div>')+'<div class="details"><h2>'+esc(p.name)+'</h2><small>'+esc(p.category)+(p.offer?' · <span class="badge">عرض</span>':'')+(p.active?'':' · مخفي')+'</small><p class="dish-description'+(p.description?'':' missing')+'">'+(p.description?esc(p.description):'لم تضف وصفاً بعد')+'</p><div class="prices"><span>'+money(p.price)+'</span>'+(p.offer&&p.old_price>p.price?'<del>'+money(p.old_price)+'</del>':'')+'</div></div><button type="button" data-id="'+p.id+'">تعديل</button></article>').join('')||'<p>لا توجد أصناف بهذا البحث.</p>';
+ $('categoryOptions').innerHTML=[...new Set(products.map(p=>p.category))].map(c=>'<option value="'+esc(c)+'"></option>').join('');
+}
+function toggleOffer(){const on=$('offer').checked;$('offerFields').hidden=!on;$('badgeGeneral').hidden=on;if(on)$('badge').value=$('badgePlain').value;else $('badgePlain').value=$('badge').value}
+function openForm(id=null){
+ editing=id;pendingImage=null;$('form').reset();$('error').hidden=true;
+ const p=products.find(item=>item.id===id);
+ $('formTitle').textContent=p?'تعديل منتج':'إضافة منتج';
+ $('delete').hidden=!p;$('active').checked=p?p.active:true;
+ for(const field of ['name','price','category','description','image'])$(field).value=p?.[field]??'';
+ $('offer').checked=!!p?.offer;$('oldPrice').value=p?.old_price||'';
+ $('badge').value=p?.badge||'';$('badgePlain').value=p?.badge||'';
+ $('imageFile').value='';toggleOffer();refreshPreview();
+ $('shade').hidden=false;$('panel').hidden=false;document.body.style.overflow='hidden';$('name').focus();
+}
+function closeForm(){if(busy)return;$('shade').hidden=true;$('panel').hidden=true;document.body.style.overflow=''}
+function refreshPreview(){let src=pendingImage||$('image').value.trim();$('preview').hidden=!src;$('removeImage').hidden=!src;if(src)$('preview').src=src}
+function compactImage(file){
+ return new Promise((resolve,reject)=>{
+  const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{const scale=Math.min(1,900/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);URL.revokeObjectURL(url);const data=canvas.toDataURL('image/jpeg',.76);if(data.length>800000)reject(new Error('الصورة كبيرة جداً، اختر صورة أصغر'));else resolve(data)};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('تعذر قراءة الصورة'))};img.src=url;
+ });
+}
+async function save(){
+ if(busy)return;
+ $('error').hidden=true;
+ const name=$('name').value.trim(),category=$('category').value.trim(),price=$('price').value;
+ if(!name||!category||price===''){error('اكتب الاسم والقسم والسعر');return}
+ const offer=$('offer').checked,oldPrice=$('oldPrice').value;
+ if(offer&&(!oldPrice||Number(oldPrice)<=Number(price))){error('السعر القديم يجب أن يكون أكبر من سعر العرض');return}
+ setBusy(true);
+ try{
+  let image=$('image').value.trim();
+  if(pendingImage)image=await server('uploadImage',pendingImage,$('imageFile').files[0]?.name||'product.jpg');
+  const product={id:editing,name,category,price:Number(price),description:$('description').value.trim(),image,badge:offer?$('badge').value.trim():$('badgePlain').value.trim(),active:$('active').checked,old_price:oldPrice===''?0:Number(oldPrice),offer};
+  const result=await server('saveProduct',product);
+  products=result.products;render();setBusy(false);closeForm();notice(editing===null?'تمت إضافة المنتج':'تم حفظ التعديل');
+ }catch(e){error(e.message||'تعذر الحفظ');setBusy(false)}
+}
+async function remove(){
+ if(busy||editing===null)return;
+ const p=products.find(item=>item.id===editing);
+ if(!confirm('حذف '+p.name+' نهائياً من المنيو؟'))return;
+ setBusy(true);
+ try{products=await server('deleteProduct',editing);render();setBusy(false);closeForm();notice('تم حذف المنتج')}
+ catch(e){error(e.message||'تعذر الحذف');setBusy(false)}
+}
+$('search').addEventListener('input',render);
+$('missingDescriptions').addEventListener('click',()=>{onlyMissingDescriptions=!onlyMissingDescriptions;$('missingDescriptions').setAttribute('aria-pressed',String(onlyMissingDescriptions));render()});
+$('add').addEventListener('click',()=>openForm());
+$('list').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(b)openForm(Number(b.dataset.id))});
+$('close').addEventListener('click',closeForm);$('shade').addEventListener('click',closeForm);
+$('offer').addEventListener('change',toggleOffer);
+$('image').addEventListener('input',()=>{pendingImage=null;refreshPreview()});
+$('removeImage').addEventListener('click',()=>{pendingImage=null;$('image').value='';$('imageFile').value='';refreshPreview()});
+$('imageFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{pendingImage=await compactImage(file);refreshPreview()}catch(err){error(err.message);e.target.value=''}});
+$('save').addEventListener('click',save);$('delete').addEventListener('click',remove);
+$('form').addEventListener('submit',e=>{e.preventDefault();save()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeForm()});
+server('listProducts').then(data=>{products=data;render()}).catch(e=>{$('summary').textContent='تعذر تحميل المنتجات: تحقق من الاتصال ثم أعد المحاولة';$('setupHint').hidden=false;$('add').disabled=true});
+</script></body></html>
