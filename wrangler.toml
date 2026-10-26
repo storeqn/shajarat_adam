@@ -1,8 +1,0 @@
-name = "shajarat-adam"
-compatibility_date = "2026-10-01"
-pages_build_output_dir = "dist"
-[[d1_databases]]
-binding = "DB"
-database_name = "shajarat-adam"
-database_id = "8382880c-abcd-42ef-8ce5-ed7653619c62"
-migrations_dir = "migrations"
