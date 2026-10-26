@@ -7,7 +7,7 @@
 .description-help{margin:-5px 0 4px;color:#666;font-size:12px;line-height:1.5}.dish-description{margin:6px 0 0;color:#555;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.dish-description.missing{color:#9b7650}.description-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 14px}.description-tools button{border:1px solid #d8d0ad;border-radius:10px;background:#fff;padding:7px 11px;color:#2d2b23;font-weight:700}.description-tools button[aria-pressed=true]{background:#f4c928;border-color:#e7bd25}
 </style></head>
 <body>
-<header class="top"><div class="shell bar"><div class="admin-brand"><img src="assets/images/logo.svg" alt="شعار مطعم شجرة آدم" width="56" height="56"><div><h1>إدارة حلويات شجرة آدم</h1><p>المنتجات والأسعار والعروض والصور</p></div></div><a href="https://storeqn.github.io/alyasiri-menu/" target="_blank" rel="noopener">عرض المنيو ↗</a></div></header>
+<header class="top"><div class="shell bar"><div class="admin-brand"><img src="assets/images/logo.svg" alt="شعار مطعم شجرة آدم" width="56" height="56"><div><h1>إدارة حلويات شجرة آدم</h1><p>المنتجات والأسعار والعروض والصور</p></div></div><a href="https://shajarat-adam.pages.dev/" target="_blank" rel="noopener">عرض المنيو ↗</a></div></header>
 <main class="shell"><div class="controls"><input id="search" type="search" placeholder="ابحث عن منتج أو قسم..." aria-label="البحث عن صنف"><button class="primary" id="add" type="button">+ إضافة</button></div><div class="summary" id="summary">جارِ تحميل المنتجات...</div><div class="description-tools"><button id="missingDescriptions" type="button" aria-pressed="false">عرض الأطباق بلا وصف</button><span id="descriptionCount" class="hint"></span></div><p class="hint" id="setupHint" hidden>تأكد من اتصال الإنترنت، ثم أعد فتح لوحة الإدارة. إذا استمر التأخير يمكنك استخدام الرابط التالي: <a href="https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/edit" target="_blank" rel="noopener">افتح لوحة الإدارة الحالية</a>.</p><div class="grid" id="list"></div></main>
 <div class="shade" id="shade" hidden></div>
 <section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="formTitle" hidden>
@@ -55,15 +55,15 @@ async function sheetProducts(){
  if(response?.status!=='ok'||!Array.isArray(response.table?.rows))throw new Error('تعذر قراءة الشيت');
  const items=response.table.rows.map(row=>{
   const c=row.c||[],v=i=>c[i]?.v;
-  const id=Number(v(0)),name=String(v(1)||'').trim(),price=Number(v(2)),category=String(v(3)||'').trim();
-  if(!Number.isSafeInteger(id)||!name||!Number.isFinite(price)||!category)return null;
+  const id=Number(v(0)),name=String(v(1)||'').trim(),rawPrice=v(2),price=Number(rawPrice),category=String(v(3)||'').trim();
+  if(!Number.isSafeInteger(id)||!name||rawPrice===null||rawPrice===undefined||rawPrice===''||!Number.isFinite(price)||!category)return null;
   return {id,name,price,category,description:String(v(4)||''),image:String(v(5)||''),badge:String(v(6)||''),active:v(7)!==false&&String(v(7)).toLowerCase()!=='false',old_price:Number(v(8))||0,offer:v(9)===true||String(v(9)).toLowerCase()==='true'};
  }).filter(Boolean);
- if(!items.length)throw new Error('الشيت فارغ');
+ // An empty list is valid while the owner prepares product prices.
  return items;
 }
 async function server(method,...args){
- if(method!=='listProducts'&&!API)throw new Error('الحفظ متوقف حتى ربط Apps Script المالك. لا تضع رابط مطعم الياسري.');
+ if(method!=='listProducts'&&!API)throw new Error('الحفظ متوقف حتى ربط Apps Script المالك. لا تضع رابط مطعم شجرة آدم.');
  if(method==='listProducts'){
   return API?Promise.any([sheetProducts(),getJSONP({action:'listProducts'}).then(response=>{if(!response.ok)throw new Error(response.error||'تعذر تحميل المنتجات');return response.result})]):sheetProducts();
  }
