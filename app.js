@@ -73,8 +73,10 @@ function card(item){
   const picture=src?'<img class="food-image" src="'+escapeHtml(src)+'" alt="'+(item.image?'':'صورة توضيحية')+'" loading="lazy" decoding="async">':placeholder(item);
   const description=item.description?'<p class="description">'+escapeHtml(item.description)+'</p>':'';
   const badge=(item.offer?'<span class="badge">عرض خاص</span>':'')+(item.badge?'<span class="badge">'+escapeHtml(item.badge)+'</span>':'');
+  const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);const selected=variants.find(p=>p.id===Number(selectedWeights[item.name+'|'+item.category]))||item;
+  const options=variants.length>1?'<label class="weight-picker-label">اختر الوزن <select class="weight-picker" data-weight-key="'+escapeHtml(item.name+'|'+item.category)+'">'+variants.map(v=>'<option value="'+v.id+'" '+(v.id===selected.id?'selected':'')+'>'+escapeHtml(v.weight||'الحجم العادي')+' — '+fmt(v.price)+'</option>').join('')+'</select></label>':(item.weight?'<small class="weight-single">'+escapeHtml(item.weight)+'</small>':'');
   const previous=item.offer&&item.old_price>item.price?'<del class="old-price">'+fmt(item.old_price)+'</del>':'';
-  return '<article class="card">'+picture+'<button type="button" class="favorite'+(favoriteIds.has(item.id)?' is-favorite':'')+'" data-favorite="'+item.id+'" aria-pressed="'+favoriteIds.has(item.id)+'" aria-label="'+(favoriteIds.has(item.id)?'إزالة من المفضلة: ':'إضافة للمفضلة: ')+escapeHtml(item.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.5c0 4.5-8.8 11-8.8 11s-8.8-6.5-8.8-11a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button><div class="card-info"><h3>'+escapeHtml(item.name)+'</h3><div class="card-meta">'+escapeHtml(item.category)+badge+'</div>'+description+'<div class="price">'+fmt(item.price)+previous+'</div></div><button class="add" type="button" data-add="'+item.id+'" aria-label="إضافة '+escapeHtml(item.name)+' إلى السلة">+</button></article>';
+  return '<article class="card">'+picture+'<button type="button" class="favorite'+(favoriteIds.has(item.id)?' is-favorite':'')+'" data-favorite="'+item.id+'" aria-pressed="'+favoriteIds.has(item.id)+'" aria-label="'+(favoriteIds.has(item.id)?'إزالة من المفضلة: ':'إضافة للمفضلة: ')+escapeHtml(item.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.5c0 4.5-8.8 11-8.8 11s-8.8-6.5-8.8-11a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button><div class="card-info"><h3>'+escapeHtml(item.name)+'</h3><div class="card-meta">'+escapeHtml(item.category)+badge+'</div>'+description+'<div class="price">'+fmt(selected.price)+previous+'</div>'+options+'</div><button class="add" type="button" data-add="'+selected.id+'" aria-label="إضافة '+escapeHtml(item.name)+' إلى السلة">+</button></article>';
 }
 function categoryIcon(category){
   const paths={
@@ -97,13 +99,15 @@ function categoryIcon(category){
 function renderCats(){
   byId('cats').innerHTML=categories.map(cat=>'<button type="button" class="cat'+(active===cat?' active':'')+'" data-category="'+escapeHtml(cat)+'" aria-pressed="'+(active===cat)+'">'+categoryIcon(cat)+'<span>'+escapeHtml(cat)+'</span></button>').join('');
 }
+const selectedWeights={};
+function uniqueProducts(items){const seen=new Set();return items.filter(p=>{const key=p.name+'|'+p.category;if(seen.has(key))return false;seen.add(key);return true})}
 function renderMenu(){
   const query=normalize(byId('q').value);
   const terms=query.split(' ').filter(Boolean);
-  const filtered=menuItems.filter(item=>{
+  const filtered=uniqueProducts(menuItems.filter(item=>{
     const text=normalize(item.name+' '+item.category+' '+(item.description||''));
     return (active==='الكل'||(active==='العروض'?item.offer:active==='المفضلة'?favoriteIds.has(item.id):item.category===active))&&terms.every(term=>text.includes(term));
-  });
+  }));
   const grouped=active==='الكل'&&!query;
   const container=byId('menu');
   container.classList.toggle('has-groups',grouped);
@@ -305,7 +309,7 @@ document.addEventListener('keydown',event=>{
 });
 document.querySelectorAll('input[name="pickup"]').forEach(el=>el.addEventListener('change',pickupChanged));
 byId('orderForm').addEventListener('submit',sendOrder);
-function renderPopular(){const featured=[...menuItems.filter(item=>item.badge),...menuItems.filter(item=>illustrativeImages.has(item.name)),...menuItems].filter((item,index,all)=>all.findIndex(other=>other.id===item.id)===index).slice(0,6);byId('popular').innerHTML=featured.map(card).join('');byId('popularSection').hidden=!featured.length}
+function renderPopular(){const featured=uniqueProducts([...menuItems.filter(item=>item.badge),...menuItems.filter(item=>illustrativeImages.has(item.name)),...menuItems]).slice(0,6);byId('popular').innerHTML=featured.map(card).join('');byId('popularSection').hidden=!featured.length}
 renderPopular();
 let installPrompt;
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;byId('installButton').hidden=false});
@@ -320,7 +324,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateOpen
 
 // The public Sheet supplies live data. The bundled menu stays available if the Sheet is private or offline.
 function loadSheetMenu(){
-  const callback='__shajarat-adamMenuResponse';
+  const callback='__shajaratAdamMenuResponse';
   const script=document.createElement('script');
   let finished=false;
   const finish=()=>{if(finished)return;finished=true;clearTimeout(timer);script.remove();delete window[callback]};
@@ -330,13 +334,13 @@ function loadSheetMenu(){
       if(response.status!=='ok'||!Array.isArray(rows))return;
       const incoming=rows.map(row=>{
         const c=row.c||[],v=i=>c[i]?.v;
-        const id=Number(v(0)),price=Number(v(2)),name=String(v(1)||'').trim(),category=String(v(3)||'').trim();
+        const id=Number(v(0)),rawPrice=v(2),price=Number(rawPrice),name=String(v(1)||'').trim(),category=String(v(3)||'').trim();
         const rawImage=String(v(5)||'').trim();
         const image=/^https:\/\//i.test(rawImage)||/^assets\/images\/[\w./-]+$/i.test(rawImage)?rawImage:'';
         const active=v(7);
-        if(!Number.isSafeInteger(id)||id<0||!Number.isFinite(price)||price<0||!name||!category||active===false||String(active).toLowerCase()==='false')return null;
+        if(!Number.isSafeInteger(id)||id<0||(rawPrice===null||rawPrice===undefined||rawPrice===''||!Number.isFinite(price))||price<0||!name||!category||active===false||String(active).toLowerCase()==='false')return null;
         const old_price=Number(v(8))||0,offer=v(9)===true||String(v(9)).toLowerCase()==='true';
-        return {id,name,price,category,description:String(v(4)||'').trim(),image,badge:String(v(6)||'').trim(),old_price,offer};
+        return {id,name,price,category,description:String(v(4)||'').trim(),image,badge:String(v(6)||'').trim(),old_price,offer,weight:String(v(10)||'').trim()};
       }).filter(Boolean);
       if(!incoming.length||new Set(incoming.map(item=>item.id)).size!==incoming.length)return;
       menuItems=incoming;itemMap=new Map(incoming.map(item=>[item.id,item]));
@@ -349,8 +353,9 @@ function loadSheetMenu(){
   script.onerror=finish;
   const timer=setTimeout(finish,25000);
   const query='out:json;responseHandler:'+callback;
-  const select='select A,B,C,D,E,F,G,H,I,J where B is not null';
-  script.src='https://docs.google.com/spreadsheets/d/10ZTSM48oo2TrzXN-1hZsFTnFYaUg_be6T1W_I6uRwZ8/gviz/tq?sheet='+encodeURIComponent('المنتجات')+'&tqx='+encodeURIComponent(query)+'&tq='+encodeURIComponent(select)+'&v='+Date.now();
+  const select='select A,B,C,D,E,F,G,H,I,J,K where B is not null';
+  script.src='https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/gviz/tq?sheet='+encodeURIComponent('المنتجات')+'&tqx='+encodeURIComponent(query)+'&tq='+encodeURIComponent(select)+'&v='+Date.now();
   document.head.appendChild(script);
 }
-// The original restaurant Google Sheet is intentionally not connected to this store.
+loadSheetMenu();
+document.addEventListener('change',event=>{const el=event.target.closest('.weight-picker');if(!el)return;selectedWeights[el.dataset.weightKey]=el.value;renderMenu();renderPopular()});
