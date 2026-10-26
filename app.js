@@ -44,13 +44,13 @@ function updateSoundToggle(){
   byId('soundToggleText').textContent=soundEnabled?'الصوت يعمل':'الصوت مكتوم';
 }
 const baghdadClock=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Baghdad',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
-function ordersOpen(){return false;} // Checkout locked until shop owner configures an approved WhatsApp number.
+function ordersOpen(){return true;} // Orders can be sent to the store's confirmed WhatsApp number.
 function updateOpeningStatus(){
   const open=ordersOpen();
   const status=byId('openingStatus');
-  status.textContent=open?'مفتوح الآن · استقبال الطلبات حتى 1:00 صباحاً':'مغلق الآن · يفتح اليوم الساعة 4:00 مساءً';
+  status.textContent='استقبال الطلبات عبر واتساب';
   status.classList.toggle('is-open',open);
-  byId('orderHoursNotice').textContent=open?'المتجر مفتوح الآن؛ يمكنك تأكيد طلبك.':'المتجر مغلق الآن. يبدأ تثبيت الطلبات اليوم الساعة 4:00 مساءً بتوقيت بغداد. ستبقى الحلويات في سلتك.';
+  byId('orderHoursNotice').textContent='يتم إرسال تفاصيل الطلب إلى واتساب المتجر، ويؤكد المتجر التوفر والتجهيز بعد استلام الرسالة.';
   byId('orderHoursNotice').classList.toggle('is-closed',!open);
   byId('confirmOrder').disabled=!open;
   byId('confirmOrderText').textContent=open?'تأكيد الطلب عبر واتساب':'يبدأ تأكيد الطلبات الساعة 4 مساءً';
@@ -255,7 +255,7 @@ function sendOrder(event){
   if(mode==='delivery'&&address)lines.push('العنوان: '+address);
   if(mode==='delivery'&&deliveryLocation)lines.push('موقع التوصيل على الخريطة: '+deliveryLocationUrl());
   if(note)lines.push('ملاحظات: '+note);
-  const url='#';
+  const url='https://wa.me/9647706848869?text='+encodeURIComponent(lines.join('\n'));
   playSound('confirm');
   window.location.href=url;
 }
