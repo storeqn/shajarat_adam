@@ -15,7 +15,7 @@
 <div class="panel-body"><form id="form" class="form-grid">
 <label>اسم المنتج *<input id="name" required maxlength="120"></label>
 <div class="two"><label>السعر الحالي بالدينار *<input id="price" type="number" min="0" step="1" inputmode="numeric" required></label><label>القسم *<input id="category" list="categoryOptions" required><datalist id="categoryOptions"></datalist></label></div>
-<label>الوصف والوزن والتفاصيل<textarea id="description" rows="3" maxlength="500" placeholder="مثال: اكتب المكونات، الصوص، وما يرافق المنتج..." aria-describedby="descriptionHelp"></textarea></label><p class="description-help" id="descriptionHelp">يظهر هذا الوصف أسفل اسم الطبق في المنيو. اكتب التفاصيل الصحيحة لكل منتج ثم اضغط حفظ المنتج.</p>
+<div class="weight-panel"><strong>الأوزان والأسعار</strong><p class="hint">مثال: نصف كيلو 10,000 د.ع، كيلو 20,000 د.ع. كل وزن يظهر للزبون كخيار.</p><div id="weightRows"></div><button type="button" id="addWeight" class="primary" style="margin:8px 0">+ إضافة وزن وسعر</button></div><label>الوصف والتفاصيل<textarea id="description" rows="3" maxlength="500" placeholder="مثال: اكتب المكونات، الصوص، وما يرافق المنتج..." aria-describedby="descriptionHelp"></textarea></label><p class="description-help" id="descriptionHelp">يظهر هذا الوصف أسفل اسم الطبق في المنيو. اكتب التفاصيل الصحيحة لكل منتج ثم اضغط حفظ المنتج.</p>
 <label>رابط الصورة المباشر<input id="image" type="url" placeholder="https://... أو ارفع صورة أدناه"></label>
 <label>أو اختر صورة من الهاتف<input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <div><img id="preview" class="preview" alt="معاينة صورة المنتج" hidden><button id="removeImage" type="button" hidden>إزالة الصورة</button></div>
@@ -31,6 +31,8 @@
 'use strict';
 const $=id=>document.getElementById(id);
 let products=[],editing=null,pendingImage=null,busy=false,onlyMissingDescriptions=false;
+function weightRow(weight='',price=''){const div=document.createElement('div');div.className='two';div.style.margin='8px 0';div.innerHTML='<label>الوزن<input class="weight-name" placeholder="نصف كيلو / كيلو" required></label><label>سعر الوزن (د.ع)<input class="weight-price" type="number" min="0" step="1" inputmode="numeric" required></label><button type="button" class="remove-weight">حذف الوزن</button>';div.querySelector('.weight-name').value=weight;div.querySelector('.weight-price').value=price;div.querySelector('.remove-weight').onclick=()=>div.remove();$('weightRows').appendChild(div)}
+$('addWeight').onclick=()=>weightRow();
 const money=n=>Number(n).toLocaleString('en-US')+' د.ع';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const API='https://script.google.com/macros/s/AKfycbyVRN3Zb-8ttbA9wqBmae8Zzofdw6f7zN3jFGs1wRtjMGG51rWM5KSCL4bLTWMrznpC/exec';
@@ -51,13 +53,13 @@ function getJSONP(params,url=API,sheetQuery=false,timeout=25000){
 }
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function sheetProducts(){
- const response=await getJSONP({sheet:'المنتجات',tq:'select A,B,C,D,E,F,G,H,I,J where B is not null'},SHEET,true,30000);
+ const response=await getJSONP({sheet:'المنتجات',tq:'select A,B,C,D,E,F,G,H,I,J,K where B is not null'},SHEET,true,30000);
  if(response?.status!=='ok'||!Array.isArray(response.table?.rows))throw new Error('تعذر قراءة الشيت');
  const items=response.table.rows.map(row=>{
   const c=row.c||[],v=i=>c[i]?.v;
   const id=Number(v(0)),name=String(v(1)||'').trim(),rawPrice=v(2),price=Number(rawPrice),category=String(v(3)||'').trim();
   if(!Number.isSafeInteger(id)||!name||rawPrice===null||rawPrice===undefined||rawPrice===''||!Number.isFinite(price)||!category)return null;
-  return {id,name,price,category,description:String(v(4)||''),image:String(v(5)||''),badge:String(v(6)||''),active:v(7)!==false&&String(v(7)).toLowerCase()!=='false',old_price:Number(v(8))||0,offer:v(9)===true||String(v(9)).toLowerCase()==='true'};
+  return {id,name,price,category,description:String(v(4)||''),image:String(v(5)||''),badge:String(v(6)||''),active:v(7)!==false&&String(v(7)).toLowerCase()!=='false',old_price:Number(v(8))||0,offer:v(9)===true||String(v(9)).toLowerCase()==='true',weight:String(v(10)||'')};
  }).filter(Boolean);
  // An empty list is valid while the owner prepares product prices.
  return items;
@@ -98,6 +100,7 @@ function openForm(id=null){
  $('formTitle').textContent=p?'تعديل منتج':'إضافة منتج';
  $('delete').hidden=!p;$('active').checked=p?p.active:true;
  for(const field of ['name','price','category','description','image'])$(field).value=p?.[field]??'';
+ $('weightRows').innerHTML='';if(p){const variants=products.filter(x=>x.name===p.name&&x.category===p.category);variants.forEach(v=>weightRow(v.weight||'',v.price));}else weightRow();
  $('offer').checked=!!p?.offer;$('oldPrice').value=p?.old_price||'';
  $('badge').value=p?.badge||'';$('badgePlain').value=p?.badge||'';
  $('imageFile').value='';toggleOffer();refreshPreview();
@@ -115,17 +118,24 @@ function compactImage(file){
 async function save(){
  if(busy)return;
  $('error').hidden=true;
- const name=$('name').value.trim(),category=$('category').value.trim(),price=$('price').value;
+ const name=$('name').value.trim(),category=$('category').value.trim(),price=$('price').value||'0';
  if(!name||!category||price===''){error('اكتب الاسم والقسم والسعر');return}
  const offer=$('offer').checked,oldPrice=$('oldPrice').value;
  if(offer&&(!oldPrice||Number(oldPrice)<=Number(price))){error('السعر القديم يجب أن يكون أكبر من سعر العرض');return}
  setBusy(true);
  try{
   let image=$('image').value.trim();
-  if(pendingImage)image=await server('uploadImage',pendingImage,$('imageFile').files[0]?.name||'product.jpg');
+  if(pendingImage)throw new Error('رفع الملفات غير مفعّل حالياً؛ استخدم رابط صورة HTTPS');
   const product={id:editing,name,category,price:Number(price),description:$('description').value.trim(),image,badge:offer?$('badge').value.trim():$('badgePlain').value.trim(),active:$('active').checked,old_price:oldPrice===''?0:Number(oldPrice),offer};
-  const result=await server('saveProduct',product);
-  products=result.products;render();setBusy(false);closeForm();notice(editing===null?'تمت إضافة المنتج':'تم حفظ التعديل');
+  const variants=[...document.querySelectorAll('#weightRows > div')].map(row=>({weight:row.querySelector('.weight-name').value.trim(),price:row.querySelector('.weight-price').value}));
+  if(!variants.length)throw new Error('أضف وزناً واحداً على الأقل');
+  if(variants.some(v=>!v.weight||v.price===''||!Number.isSafeInteger(Number(v.price))||Number(v.price)<0))throw new Error('أكمل الوزن والسعر لكل خيار');
+  if(new Set(variants.map(v=>v.weight)).size!==variants.length)throw new Error('يوجد وزن مكرر');
+  const original=editing===null?[]:products.filter(p=>p.name===product.name&&p.category===product.category);
+  let latest=products;
+  for(const v of variants){const existing=original.find(p=>p.weight===v.weight);const result=await server('saveProduct',{...product,id:existing?.id??(original.length===1&&variants.length===1?editing:null),weight:v.weight,price:Number(v.price)});latest=result.products;}
+  for(const old of original){if(!variants.some(v=>v.weight===old.weight))latest=await server('deleteProduct',old.id)}
+  products=latest;render();setBusy(false);closeForm();notice('تم حفظ المنتج والأوزان');
  }catch(e){error(e.message||'تعذر الحفظ');setBusy(false)}
 }
 async function remove(){
