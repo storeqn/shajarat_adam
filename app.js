@@ -74,12 +74,11 @@ function card(item){
   const description=item.description?'<p class="description">'+escapeHtml(item.description)+'</p>':'';
   const badge=(item.offer?'<span class="badge">عرض خاص</span>':'')+(item.badge?'<span class="badge">'+escapeHtml(item.badge)+'</span>':'');
   const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);
-  const startingPrice=Math.min(...variants.map(v=>v.price));
-  const priceLabel=variants.length>1?'<span class="from-label">يبدأ من</span> '+fmt(startingPrice):fmt(item.price);
-  const weightInfo=variants.length>1?'<div class="weight-hint">اختر الوزن والسعر قبل الإضافة</div>':(item.weight?'<div class="weight-hint">'+escapeHtml(item.weight)+'</div>':'');
+  const hasWeights=variants.some(v=>String(v.weight||'').trim());
+  const minPrice=Math.min(...variants.map(v=>v.price));
+  const priceText=variants.length>1?'<span class="price-prefix">يبدأ من</span> '+fmt(minPrice):fmt(item.price);
   const previous=item.offer&&item.old_price>item.price?'<del class="old-price">'+fmt(item.old_price)+'</del>':'';
-  const buttonLabel=variants.length>1?'اختيار الوزن':'إضافة للسلة';
-  return '<article class="card sweets-card">'+picture+'<button type="button" class="favorite'+(favoriteIds.has(item.id)?' is-favorite':'')+'" data-favorite="'+item.id+'" aria-pressed="'+favoriteIds.has(item.id)+'" aria-label="المفضلة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.5c0 4.5-8.8 11-8.8 11s-8.8-6.5-8.8-1.2 4.5-8.8 11-8.8 11Z"/></svg></button><div class="card-info"><h3>'+escapeHtml(item.name)+'</h3><div class="card-meta">'+escapeHtml(item.category)+badge+'</div>'+description+'<div class="price">'+priceLabel+previous+'</div>'+weightInfo+'<button class="sweets-add" type="button" data-add="'+item.id+'">'+buttonLabel+' <span aria-hidden="true">←</span></button></div></article>';
+  return '<article class="card sweets-card">'+picture+'<button type="button" class="favorite'+(favoriteIds.has(item.id)?' is-favorite':'')+'" data-favorite="'+item.id+'" aria-pressed="'+favoriteIds.has(item.id)+'" aria-label="إضافة للمفضلة: '+escapeHtml(item.name)+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.5c0 4.5-8.8 11-8.8 11s-8.8-6.5-8.8-11a4.5 4.5 0 0 1 8.8-1.2 4.5 4.5 0 0 1 8.8 1.2Z"/></svg></button><div class="card-info"><h3>'+escapeHtml(item.name)+'</h3><div class="card-meta">'+escapeHtml(item.category)+badge+'</div>'+description+'<div class="price">'+priceText+previous+'</div><button class="sweets-order-button" type="button" data-choose="'+item.id+'">'+(hasWeights?'اختر الوزن وأضف للسلة':'إضافة للسلة')+' <span aria-hidden="true">＋</span></button></div></article>';
 }
 function categoryIcon(category){
   const paths={
@@ -160,6 +159,23 @@ function showWeightChooser(item,variants){
  const close=()=>{modal.hidden=true;document.body.classList.remove('weight-modal-open')};
  modal.querySelectorAll('[data-close-weight]').forEach(el=>el.onclick=close);
  modal.querySelector('.weight-confirm').onclick=()=>{const chosen=modal.querySelector('input[name="selectedWeight"]:checked');if(chosen){add(Number(chosen.value));close()}};
+}
+function openWeightChoice(id){
+ const item=itemMap.get(id);if(!item)return;
+ const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);
+ if(variants.length===1&&!variants[0].weight){add(id);return}
+ const overlay=document.createElement('div');overlay.className='weight-dialog-backdrop';overlay.setAttribute('role','presentation');
+ const dialog=document.createElement('section');dialog.className='weight-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','اختيار وزن '+item.name);
+ const options=variants.map((v,i)=>'<label class="weight-option"><input type="radio" name="weight-choice" value="'+v.id+'" '+(i===0?'checked':'')+'><span class="weight-option-name">'+escapeHtml(v.weight||'الحجم العادي')+'</span><strong>'+fmt(v.price)+'</strong></label>').join('');
+ dialog.innerHTML='<div class="weight-dialog-header"><div><small>اختر الحجم المناسب</small><h3>'+escapeHtml(item.name)+'</h3></div><button type="button" class="weight-close" aria-label="إغلاق">×</button></div><div class="weight-options">'+options+'</div><div class="weight-dialog-footer"><div><small>السعر النهائي</small><strong class="weight-total">'+fmt(variants[0].price)+'</strong></div><button type="button" class="weight-confirm">إضافة للسلة ＋</button></div>';
+ overlay.appendChild(dialog);document.body.appendChild(overlay);
+ const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey)};
+ const onKey=e=>{if(e.key==='Escape')close()};
+ document.addEventListener('keydown',onKey);
+ overlay.addEventListener('click',e=>{if(e.target===overlay||e.target.closest('.weight-close'))close()});
+ dialog.addEventListener('change',e=>{if(e.target.name==='weight-choice'){const chosen=itemMap.get(Number(e.target.value));if(chosen)dialog.querySelector('.weight-total').textContent=fmt(chosen.price)}});
+ dialog.querySelector('.weight-confirm').addEventListener('click',()=>{const chosen=dialog.querySelector('input[name="weight-choice"]:checked');if(chosen){add(Number(chosen.value));close()}});
+ dialog.querySelector('.weight-close').focus();
 }
 function change(id,delta){
   if(!itemMap.has(id))return;
@@ -288,6 +304,8 @@ byId('soundToggle').addEventListener('click',()=>{
 document.addEventListener('click',event=>{
   const favorite=event.target.closest('[data-favorite]');
   if(favorite){const id=Number(favorite.dataset.favorite);if(favoriteIds.has(id))favoriteIds.delete(id);else favoriteIds.add(id);try{localStorage.setItem(favoriteKey,JSON.stringify([...favoriteIds]))}catch(_error){}categories=menuCategories();if(active==='المفضلة'&&!favoriteIds.size)active='الكل';renderCats();renderPopular();renderMenu();return}
+  const chooseButton=event.target.closest('[data-choose]');
+  if(chooseButton){openWeightChoice(Number(chooseButton.dataset.choose));return}
   const addButton=event.target.closest('[data-add]');
   if(addButton){const item=itemMap.get(Number(addButton.dataset.add));if(item){const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);if(variants.length>1){showWeightChooser(item,variants)}else add(item.id)}return}
   const cat=event.target.closest('[data-category]');
