@@ -8,7 +8,7 @@
 </style></head>
 <body>
 <header class="top"><div class="shell bar"><div class="admin-brand"><img src="assets/images/logo.svg" alt="شعار مطعم شجرة آدم" width="56" height="56"><div><h1>إدارة حلويات شجرة آدم</h1><p>المنتجات والأسعار والعروض والصور</p></div></div><a href="https://shajarat-adam.pages.dev/" target="_blank" rel="noopener">عرض المنيو ↗</a></div></header>
-<main class="shell"><div class="controls"><input id="search" type="search" placeholder="ابحث عن منتج أو قسم..." aria-label="البحث عن صنف"><button class="primary" id="add" type="button">+ إضافة</button></div><div class="summary" id="summary">جارِ تحميل المنتجات...</div><div class="description-tools"><button id="missingDescriptions" type="button" aria-pressed="false">عرض الأطباق بلا وصف</button><span id="descriptionCount" class="hint"></span></div><p class="hint" id="setupHint" hidden>تأكد من اتصال الإنترنت، ثم أعد فتح لوحة الإدارة. إذا استمر التأخير يمكنك استخدام الرابط التالي: <a href="https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/edit" target="_blank" rel="noopener">افتح لوحة الإدارة الحالية</a>.</p><div class="grid" id="list"></div></main>
+<main class="shell"><div class="controls"><input id="search" type="search" placeholder="ابحث عن منتج أو قسم..." aria-label="البحث عن صنف"><button class="primary" id="add" type="button">+ إضافة</button></div><div class="summary" id="summary">جارِ تحميل المنتجات...</div><div class="description-tools"><button id="missingDescriptions" type="button" aria-pressed="false">عرض الأطباق بلا وصف</button><span id="descriptionCount" class="hint"></span></div><p class="hint" id="setupHint" hidden>تأكد من اتصال الإنترنت، ثم أعد فتح لوحة الإدارة. إذا استمر التأخير يمكنك استخدام الرابط التالي: <a href="https://script.google.com/macros/s/AKfycbyVRN3Zb-8ttbA9wqBmae8Zzofdw6f7zN3jFGs1wRtjMGG51rWM5KSCL4bLTWMrznpC/exec" target="_blank" rel="noopener">افتح لوحة الإدارة الحالية</a>.</p><div class="grid" id="list"></div></main>
 <div class="shade" id="shade" hidden></div>
 <section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="formTitle" hidden>
 <div class="panel-head"><h2 id="formTitle">إضافة منتج</h2><button class="close" id="close" type="button" aria-label="إغلاق">×</button></div>
@@ -33,7 +33,7 @@ const $=id=>document.getElementById(id);
 let products=[],editing=null,pendingImage=null,busy=false,onlyMissingDescriptions=false;
 const money=n=>Number(n).toLocaleString('en-US')+' د.ع';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const API=''; // Add the published Shajarat Adam Apps Script URL after deploying the owner's script.
+const API='https://script.google.com/macros/s/AKfycbyVRN3Zb-8ttbA9wqBmae8Zzofdw6f7zN3jFGs1wRtjMGG51rWM5KSCL4bLTWMrznpC/exec';
 const SHEET='https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/gviz/tq';
 let callbackIndex=0;
 function getJSONP(params,url=API,sheetQuery=false,timeout=25000){
