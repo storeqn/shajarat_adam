@@ -357,5 +357,27 @@ function loadSheetMenu(){
   script.src='https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/gviz/tq?sheet='+encodeURIComponent('المنتجات')+'&tqx='+encodeURIComponent(query)+'&tq='+encodeURIComponent(select)+'&v='+Date.now();
   document.head.appendChild(script);
 }
-loadSheetMenu();
+function loadApiMenu(){
+ const endpoint='https://script.google.com/macros/s/AKfycbyVRN3Zb-8ttbA9wqBmae8Zzofdw6f7zN3jFGs1wRtjMGG51rWM5KSCL4bLTWMrznpC/exec';
+ const cb='__adamPublicMenu_'+Date.now();
+ const script=document.createElement('script');
+ let done=false;
+ const finish=()=>{if(done)return;done=true;clearTimeout(timer);script.remove();delete window[cb]};
+ window[cb]=response=>{
+  try{
+   const rows=Array.isArray(response?.products)?response.products:[];
+   const incoming=rows.filter(p=>p&&p.active!==false&&String(p.active).toLowerCase()!=='false'&&p.price!==''&&p.price!==null&&Number.isFinite(Number(p.price))&&String(p.name||'').trim()&&String(p.category||'').trim()).map(p=>({
+    id:Number(p.id),name:String(p.name),category:String(p.category),price:Number(p.price),description:String(p.description||''),image:/^https:\/\//i.test(String(p.image||''))?String(p.image):'',badge:String(p.badge||''),old_price:Number(p.old_price)||0,offer:p.offer===true||String(p.offer).toLowerCase()==='true',weight:String(p.weight||'')
+   })).filter(p=>Number.isSafeInteger(p.id));
+   if(!incoming.length||new Set(incoming.map(p=>p.id)).size!==incoming.length)return;
+   menuItems=incoming;itemMap=new Map(incoming.map(p=>[p.id,p]));
+   categories=menuCategories();if(!categories.includes(active))active='الكل';
+   renderCats();renderPopular();renderMenu();updateCart();renderCart();
+  }finally{finish()}
+ };
+ script.onerror=finish;const timer=setTimeout(finish,18000);
+ script.src=endpoint+'?action=products&callback='+encodeURIComponent(cb)+'&v='+Date.now();
+ document.head.appendChild(script);
+}
+loadSheetMenu();loadApiMenu();
 document.addEventListener('change',event=>{const el=event.target.closest('.weight-picker');if(!el)return;selectedWeights[el.dataset.weightKey]=el.value;renderMenu();renderPopular()});
