@@ -35,3 +35,31 @@
 .weight-option-name{flex:1;font-weight:700}.weight-option strong{color:#ffcf6e;font-size:16px;white-space:nowrap}
 .weight-confirm{width:100%;border:0;border-radius:14px;min-height:52px;background:linear-gradient(135deg,#ffdd80,#f4b940);color:#1b140a;font-weight:900;font-size:17px}
 body.weight-modal-open{overflow:hidden}
+
+
+/* Shajarat Adam: balanced product cards and weight selection */
+.sweets-card{overflow:hidden;display:flex;flex-direction:column;position:relative}
+.sweets-card .card-info{display:flex;flex-direction:column;gap:10px;padding:15px;flex:1}
+.sweets-card .card-info h3{font-size:clamp(18px,4vw,23px);margin:0;line-height:1.4}
+.sweets-card .price{margin-top:auto;font-weight:800;font-size:clamp(18px,4.4vw,23px);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sweets-card .price-prefix{font-size:12px;font-weight:600;color:#c5b9a1}
+.sweets-card .sweets-order-button{position:static;width:100%;min-height:48px;border:1px solid #e3b950;border-radius:13px;background:linear-gradient(135deg,#ffe18a,#f5bc46);color:#231a0d;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;box-shadow:none;margin-top:6px}
+.sweets-card .sweets-order-button span{font-size:23px;line-height:1}
+.sweets-card>.add{display:none}
+.weight-dialog-backdrop{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.76);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.weight-dialog{direction:rtl;background:#1c1916;color:#f9f3e8;border:1px solid #856b3e;border-radius:24px;width:min(100%,440px);max-height:90dvh;overflow:auto;box-shadow:0 22px 70px #0009;padding:22px}
+.weight-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.weight-dialog-header small,.weight-dialog-footer small{color:#b8aa95;font-size:12px}
+.weight-dialog-header h3{font-size:24px;margin:5px 0 0}
+.weight-close{border:1px solid #625744;border-radius:50%;background:#302a22;color:#fff;font-size:26px;width:42px;height:42px;flex:none;cursor:pointer}
+.weight-options{display:grid;gap:10px}
+.weight-option{display:flex;align-items:center;gap:12px;min-height:62px;border:1px solid #5b4c36;border-radius:14px;padding:12px;background:#25211c;cursor:pointer}
+.weight-option:has(input:checked){border-color:#f4c35b;background:#3c3020}
+.weight-option input{accent-color:#f4c35b;width:19px;height:19px}
+.weight-option-name{flex:1;font-size:16px;font-weight:700}
+.weight-option strong{color:#ffda79;font-size:16px;white-space:nowrap}
+.weight-dialog-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #514333;margin-top:20px;padding-top:18px}
+.weight-dialog-footer>div{display:grid;gap:4px}
+.weight-total{font-size:20px;color:#ffda79;white-space:nowrap}
+.weight-confirm{border:0;border-radius:13px;background:#f9c958;color:#1d160c;padding:15px 16px;font-weight:800;font-size:14px;cursor:pointer;min-height:52px}
+@media(min-width:650px){.weight-dialog-backdrop{align-items:center}}
