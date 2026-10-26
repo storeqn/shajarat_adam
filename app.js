@@ -353,6 +353,15 @@ setInterval(updateOpeningStatus,30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateOpeningStatus()});
 
 // The public Sheet supplies live data. The bundled menu stays available if the Sheet is private or offline.
+function renderPromoFromBanners(){
+ const banners=(window.__adamBanners||[]).filter(p=>p.image);
+ const section=byId('promoSlider'),track=byId('promoTrack'),dots=byId('promoDots');if(!section)return;
+ section.hidden=!banners.length;
+ track.innerHTML=banners.map((p,i)=>'<article class="promo-slide"><img src="'+escapeHtml(p.image)+'" alt="'+escapeHtml(p.name)+'" loading="'+(i?'lazy':'eager')+'"><div class="promo-caption"><strong>'+escapeHtml(p.name)+'</strong>'+(p.description?'<span>'+escapeHtml(p.description)+'</span>':'')+'</div></article>').join('');
+ dots.innerHTML=banners.map((p,i)=>'<button type="button" aria-label="الصورة '+(i+1)+'" data-slide="'+i+'"'+(i===0?' class="selected"':'')+'></button>').join('');
+ dots.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>track.children[Number(b.dataset.slide)]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})));
+ track.onscroll=()=>{const i=Math.round(track.scrollLeft/Math.max(1,track.clientWidth));dots.querySelectorAll('button').forEach((b,n)=>b.classList.toggle('selected',n===Math.abs(i)))};
+}
 function loadSheetMenu(){
   const callback='__shajaratAdamMenuResponse';
   const script=document.createElement('script');
@@ -373,7 +382,7 @@ function loadSheetMenu(){
         return {id,name,price,category,description:String(v(4)||'').trim(),image,badge:String(v(6)||'').trim(),old_price,offer,weight:String(v(10)||'').trim()};
       }).filter(Boolean);
       if(!incoming.length||new Set(incoming.map(item=>item.id)).size!==incoming.length)return;
-      menuItems=incoming;itemMap=new Map(incoming.map(item=>[item.id,item]));
+      menuItems=incoming.filter(item=>item.category!=='سلايدر العروض');const banners=incoming.filter(item=>item.category==='سلايدر العروض');window.__adamBanners=banners;itemMap=new Map(menuItems.map(item=>[item.id,item]));renderPromoFromBanners();
       for(const id of Object.keys(cart))if(!itemMap.has(Number(id)))delete cart[id];
       categories=menuCategories();
       if(!categories.includes(active))active='الكل';
@@ -400,7 +409,7 @@ function loadApiMenu(){
     id:Number(p.id),name:String(p.name),category:String(p.category),price:Number(p.price),description:String(p.description||''),image:/^https:\/\//i.test(String(p.image||''))?String(p.image):'',badge:String(p.badge||''),old_price:Number(p.old_price)||0,offer:p.offer===true||String(p.offer).toLowerCase()==='true',weight:String(p.weight||'')
    })).filter(p=>Number.isSafeInteger(p.id));
    if(!incoming.length||new Set(incoming.map(p=>p.id)).size!==incoming.length)return;
-   menuItems=incoming;itemMap=new Map(incoming.map(p=>[p.id,p]));
+   menuItems=incoming.filter(p=>p.category!=='سلايدر العروض');window.__adamBanners=incoming.filter(p=>p.category==='سلايدر العروض');itemMap=new Map(menuItems.map(p=>[p.id,p]));renderPromoFromBanners();
    categories=menuCategories();if(!categories.includes(active))active='الكل';
    renderCats();renderPopular();renderMenu();updateCart();renderCart();
   }finally{finish()}
