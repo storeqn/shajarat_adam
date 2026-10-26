@@ -83,7 +83,7 @@ async function server(method,...args){
 }
 let noticeTimer;
 function notice(text){$('message').textContent=text;$('message').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('message').hidden=true,2600)}
-function error(text){$('error').textContent=text;$('error').hidden=false}
+function error(text){$('error').textContent=text;$('error').hidden=false;$('error').scrollIntoView({behavior:'smooth',block:'center'});}
 function setBusy(state){busy=state;$('save').disabled=state;$('delete').disabled=state;$('save').textContent=state?'جارِ الحفظ...':'حفظ المنتج'}
 function render(){
  const q=$('search').value.trim().toLowerCase();
@@ -128,8 +128,9 @@ async function save(){
   if(pendingImage)throw new Error('رفع الملفات غير مفعّل حالياً؛ استخدم رابط صورة HTTPS');
   const product={id:editing,name,category,price:Number(price),description:$('description').value.trim(),image,badge:offer?$('badge').value.trim():$('badgePlain').value.trim(),active:$('active').checked,old_price:oldPrice===''?0:Number(oldPrice),offer};
   const variants=[...document.querySelectorAll('#weightRows > div')].map(row=>({weight:row.querySelector('.weight-name').value.trim(),price:row.querySelector('.weight-price').value}));
-  if(!variants.length)throw new Error('أضف وزناً واحداً على الأقل');
-  if(variants.some(v=>!v.weight||v.price===''||!Number.isSafeInteger(Number(v.price))||Number(v.price)<0))throw new Error('أكمل الوزن والسعر لكل خيار');
+  if(variants.length===1&&!variants[0].weight&&variants[0].price===''){variants[0].price=price;}
+  if(!variants.length)variants.push({weight:'',price});
+  if(variants.some(v=>(variants.length>1&&!v.weight)||v.price===''||!Number.isSafeInteger(Number(v.price))||Number(v.price)<0))throw new Error('أكمل الوزن والسعر لكل خيار');
   if(new Set(variants.map(v=>v.weight)).size!==variants.length)throw new Error('يوجد وزن مكرر');
   const original=editing===null?[]:products.filter(p=>p.name===product.name&&p.category===product.category);
   let latest=products;
