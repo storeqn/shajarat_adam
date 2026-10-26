@@ -124,7 +124,7 @@ function renderMenu(){
   byId('count').textContent=filtered.length+' صنف';
   byId('empty').hidden=filtered.length>0;
   byId('resetSearch').hidden=!byId('q').value;
-  byId('popularSection').hidden=active!=='الكل'||!!query||!menuItems.length;
+  byId('popularSection').hidden=active!=='الكل'||!!query||!uniqueProducts(menuItems.filter(item=>item.badge||item.offer)).length;
 }
 function entries(){return Object.entries(cart).map(([id,qty])=>({item:itemMap.get(Number(id)),qty})).filter(row=>row.item)}
 function totals(){return entries().reduce((v,row)=>({qty:v.qty+row.qty,price:v.price+row.item.price*row.qty}),{qty:0,price:0})}
@@ -339,7 +339,7 @@ document.addEventListener('keydown',event=>{
 });
 document.querySelectorAll('input[name="pickup"]').forEach(el=>el.addEventListener('change',pickupChanged));
 byId('orderForm').addEventListener('submit',sendOrder);
-function renderPopular(){const featured=uniqueProducts([...menuItems.filter(item=>item.badge),...menuItems.filter(item=>illustrativeImages.has(item.name)),...menuItems]).slice(0,6);byId('popular').innerHTML=featured.map(card).join('');byId('popularSection').hidden=!featured.length}
+function renderPopular(){const featured=uniqueProducts(menuItems.filter(item=>item.badge||item.offer)).slice(0,6);byId('popular').innerHTML=featured.map(card).join('');byId('popularSection').hidden=!featured.length}
 renderPopular();
 let installPrompt;
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;byId('installButton').hidden=false});
