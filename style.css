@@ -10,3 +10,28 @@
 
 /* Delivery address and optional map share the checkout card's visual language. */
 #addressField{display:grid;gap:8px}.delivery-location{padding:14px;background:#faf8f2;border:1px solid #dfd5be;border-radius:14px;min-width:0}.delivery-location h4{font-size:16px;margin:0 0 12px}.delivery-location h4 small{font-size:14px;font-weight:500;color:#645e56;margin-inline-start:6px}.location-actions{display:flex;flex-wrap:wrap;gap:8px}.delivery-location button{min-height:44px;font-size:14px;font-weight:800;border:1px solid #cbbb98;background:#fff;color:#30281c;border-radius:10px;padding:10px 12px}.location-actions button:first-child{background:#ffdf87;border-color:#d6b25c}.delivery-location button:disabled{opacity:.65;cursor:wait}.delivery-location button:focus-visible,.selected-location a:focus-visible{outline:2px solid #896119;outline-offset:3px}.location-status,.map-hint{font-size:14px;line-height:1.6;color:#645e56;margin:12px 0 0;overflow-wrap:anywhere}.location-status.is-error{color:#a32920}.map-hint{margin:10px 0}.delivery-map{height:260px;width:100%;border:1px solid #d3c8b2;border-radius:12px;background:#e9e5dc;isolation:isolate;direction:ltr}.delivery-map .leaflet-control-attribution{font-size:11px}.delivery-map .leaflet-control-attribution a{color:#19547a}.delivery-map .leaflet-control-zoom a{color:#211e1a}.selected-location{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #dfd5be}.selected-location a{font-size:14px;color:#176939;font-weight:800;text-decoration:underline}.selected-location button{color:#a32920;background:transparent;border-color:#dfc9c5}#orderForm input:not([type=radio]),#orderForm textarea{font-size:16px}
+
+/* Shajarat Adam: polished sweets cards and mandatory pre-add weight chooser */
+.sweets-card{overflow:hidden;display:flex;flex-direction:column}
+.sweets-card .card-info{display:flex;flex-direction:column;gap:9px;flex:1;padding-bottom:14px}
+.sweets-card .card-info h3{font-size:19px;line-height:1.45;margin:0}
+.sweets-card .card-meta{margin:0}
+.sweets-card .price{margin-top:auto;display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;font-weight:850;font-size:20px;color:#f8c758}
+.sweets-card .from-label{font-size:12px;font-weight:500;color:#c2b5a2}
+.sweets-card .weight-hint{font-size:12px;color:#bdb3a5;margin-top:0}
+.sweets-card .sweets-add{width:100%;min-height:46px;border:1px solid #e8b74b;border-radius:13px;background:linear-gradient(135deg,#ffdc79,#f3b944);color:#1d1710;font-size:15px;font-weight:800;display:flex;justify-content:center;align-items:center;gap:10px;cursor:pointer;margin-top:4px}
+.sweets-card .sweets-add:active{transform:scale(.98)}
+.weight-modal[hidden]{display:none!important}
+.weight-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-end;justify-content:center}
+.weight-backdrop{position:absolute;inset:0;background:#000b}
+.weight-dialog{position:relative;width:min(100%,490px);max-height:85dvh;overflow:auto;background:#1d1916;color:#fff;border:1px solid #b48c4e;border-radius:25px 25px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -15px 50px #0008;direction:rtl}
+.weight-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.weight-head small{color:#d1b88c;font-size:13px}.weight-head h3{margin:5px 0 0;font-size:24px}
+.weight-head button{width:40px;height:40px;border-radius:50%;background:#39312a;color:#fff;border:0;font-size:27px}
+.weight-options{display:grid;gap:10px;margin-bottom:20px}
+.weight-option{display:flex;align-items:center;gap:12px;border:1px solid #544637;border-radius:15px;padding:15px 12px;background:#29231d;cursor:pointer}
+.weight-option:has(input:checked){border-color:#ffcc62;background:#3b2d1a}
+.weight-option input{accent-color:#ffc857;width:19px;height:19px}
+.weight-option-name{flex:1;font-weight:700}.weight-option strong{color:#ffcf6e;font-size:16px;white-space:nowrap}
+.weight-confirm{width:100%;border:0;border-radius:14px;min-height:52px;background:linear-gradient(135deg,#ffdd80,#f4b940);color:#1b140a;font-weight:900;font-size:17px}
+body.weight-modal-open{overflow:hidden}
