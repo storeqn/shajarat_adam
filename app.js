@@ -354,7 +354,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateOpen
 
 // The public Sheet supplies live data. The bundled menu stays available if the Sheet is private or offline.
 function renderPromoFromBanners(){
- const banners=(window.__adamBanners||[]).filter(p=>p.image);
+ const banners=[{name:'واجهة حلويات شجرة آدم',description:'حياكم الله في متجرنا',image:'assets/images/shajarat-adam-storefront.webp',local:true},...(window.__adamBanners||[]).filter(p=>p.image)];
  const section=byId('promoSlider'),track=byId('promoTrack'),dots=byId('promoDots');if(!section)return;
  section.hidden=!banners.length;
  track.innerHTML=banners.map((p,i)=>'<article class="promo-slide"><img src="'+escapeHtml(p.image)+'" alt="'+escapeHtml(p.name)+'" loading="'+(i?'lazy':'eager')+'"><div class="promo-caption"><strong>'+escapeHtml(p.name)+'</strong>'+(p.description?'<span>'+escapeHtml(p.description)+'</span>':'')+'</div></article>').join('');
