@@ -1,0 +1,11 @@
+name = "shajarat-adam"
+compatibility_date = "2026-10-01"
+pages_build_output_dir = "dist"
+[[d1_databases]]
+binding = "DB"
+database_name = "shajarat-adam"
+database_id = "REPLACE_WITH_D1_ID"
+migrations_dir = "migrations"
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "shajarat-adam-media"
