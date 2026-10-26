@@ -6,6 +6,3 @@ binding = "DB"
 database_name = "shajarat-adam"
 database_id = "8382880c-abcd-42ef-8ce5-ed7653619c62"
 migrations_dir = "migrations"
-[[r2_buckets]]
-binding = "MEDIA"
-bucket_name = "shajarat-adam-media"
