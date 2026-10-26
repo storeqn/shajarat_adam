@@ -25,7 +25,7 @@
 <label id="badgeGeneral">علامة المنتج<input id="badgePlain" placeholder="الأكثر طلباً / جديد"></label>
 <p id="error" class="error" role="alert" hidden></p>
 </form></div>
-<div class="panel-foot"><button id="delete" class="danger" type="button" hidden>حذف</button><button id="save" class="primary" type="button">حفظ المنتج</button></div></section>
+<div class="panel-foot" style="flex-wrap:wrap"><p id="saveError" role="alert" hidden style="flex-basis:100%;color:#b42318;font-size:14px;margin:0"></p><button id="delete" class="danger" type="button" hidden>حذف</button><button id="save" class="primary" type="button">حفظ المنتج</button></div></section>
 <div id="message" class="message" role="status" hidden></div>
 <script>
 'use strict';
@@ -83,7 +83,7 @@ async function server(method,...args){
 }
 let noticeTimer;
 function notice(text){$('message').textContent=text;$('message').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('message').hidden=true,2600)}
-function error(text){$('error').textContent=text;$('error').hidden=false;$('error').scrollIntoView({behavior:'smooth',block:'center'});}
+function error(text){$('error').textContent=text;$('error').hidden=false;$('saveError').textContent=text;$('saveError').hidden=false;}
 function setBusy(state){busy=state;$('save').disabled=state;$('delete').disabled=state;$('save').textContent=state?'جارِ الحفظ...':'حفظ المنتج'}
 function render(){
  const q=$('search').value.trim().toLowerCase();
@@ -117,22 +117,23 @@ function compactImage(file){
 }
 async function save(){
  if(busy)return;
- $('error').hidden=true;
+ $('error').hidden=true;$('saveError').hidden=true;
  const name=$('name').value.trim(),category=$('category').value.trim(),price=$('price').value||'0';
  if(!name||!category||price===''){error('اكتب الاسم والقسم والسعر');return}
  const offer=$('offer').checked,oldPrice=$('oldPrice').value;
- if(offer&&(!oldPrice||Number(oldPrice)<=Number(price))){error('السعر القديم يجب أن يكون أكبر من سعر العرض');return}
  setBusy(true);
  try{
   let image=$('image').value.trim();
-  if(pendingImage)throw new Error('رفع الملفات غير مفعّل حالياً؛ استخدم رابط صورة HTTPS');
+  if(pendingImage)throw new Error('رفع الصور من الهاتف غير مدعوم من الخادم الحالي؛ استخدم رابط صورة HTTPS');
   const product={id:editing,name,category,price:Number(price),description:$('description').value.trim(),image,badge:offer?$('badge').value.trim():$('badgePlain').value.trim(),active:$('active').checked,old_price:oldPrice===''?0:Number(oldPrice),offer};
   const variants=[...document.querySelectorAll('#weightRows > div')].map(row=>({weight:row.querySelector('.weight-name').value.trim(),price:row.querySelector('.weight-price').value}));
   if(variants.length===1&&!variants[0].weight&&variants[0].price===''){variants[0].price=price;}
   if(!variants.length)variants.push({weight:'',price});
   if(variants.some(v=>(variants.length>1&&!v.weight)||v.price===''||!Number.isSafeInteger(Number(v.price))||Number(v.price)<0))throw new Error('أكمل الوزن والسعر لكل خيار');
   if(new Set(variants.map(v=>v.weight)).size!==variants.length)throw new Error('يوجد وزن مكرر');
-  const original=editing===null?[]:products.filter(p=>p.name===product.name&&p.category===product.category);
+  if(offer&&(!oldPrice||variants.some(v=>Number(oldPrice)<=Number(v.price))))throw new Error('السعر القديم يجب أن يكون أكبر من أسعار جميع الأوزان');
+  const edited=products.find(p=>p.id===editing);
+  const original=editing===null?[]:products.filter(p=>p.name===edited?.name&&p.category===edited?.category);
   let latest=products;
   for(const v of variants){const existing=original.find(p=>p.weight===v.weight);const result=await server('saveProduct',{...product,id:existing?.id??(original.length===1&&variants.length===1?editing:null),weight:v.weight,price:Number(v.price)});latest=result.products;}
   for(const old of original){if(!variants.some(v=>v.weight===old.weight))latest=await server('deleteProduct',old.id)}
