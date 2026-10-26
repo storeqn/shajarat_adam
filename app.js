@@ -50,7 +50,7 @@ function updateOpeningStatus(){
   const status=byId('openingStatus');
   status.textContent='استقبال الطلبات عبر واتساب';
   status.classList.toggle('is-open',open);
-  byId('orderHoursNotice').textContent='يتم إرسال تفاصيل الطلب إلى واتساب المتجر، ويؤكد المتجر التوفر والتجهيز بعد استلام الرسالة.';
+  byId('orderHoursNotice').textContent='سيتم فتح واتساب لإرسال طلبك إلى المتجر.';
   byId('orderHoursNotice').classList.toggle('is-closed',!open);
   byId('confirmOrder').disabled=!open;
   byId('confirmOrderText').textContent=open?'تأكيد الطلب عبر واتساب':'يبدأ تأكيد الطلبات الساعة 4 مساءً';
@@ -140,7 +140,7 @@ function updateCart(){
 function renderCart(){
   const rows=entries();
   byId('cartEmpty').hidden=rows.length>0;
-  byId('cartItems').innerHTML=rows.map(({item,qty})=>'<div class="cart-line"><div><h3>'+escapeHtml(item.name)+'</h3><small>'+fmt(item.price)+' × '+qty+' = '+fmt(item.price*qty)+'</small></div><div class="qty"><button type="button" data-change="'+item.id+'" data-delta="-1" aria-label="تقليل '+escapeHtml(item.name)+'">−</button><b>'+qty+'</b><button type="button" data-change="'+item.id+'" data-delta="1" aria-label="زيادة '+escapeHtml(item.name)+'">+</button><button type="button" class="remove" data-remove="'+item.id+'" aria-label="حذف '+escapeHtml(item.name)+'">×</button></div></div>').join('');
+  byId('cartItems').innerHTML=rows.map(({item,qty})=>'<div class="cart-line"><div><h3>'+escapeHtml(item.name)+'</h3>'+(item.weight?'<span class="cart-weight">الوزن: '+escapeHtml(item.weight)+'</span>':'')+'<small>'+fmt(item.price)+' × '+qty+' = '+fmt(item.price*qty)+'</small></div><div class="qty"><button type="button" data-change="'+item.id+'" data-delta="-1" aria-label="تقليل '+escapeHtml(item.name)+'">−</button><b>'+qty+'</b><button type="button" data-change="'+item.id+'" data-delta="1" aria-label="زيادة '+escapeHtml(item.name)+'">+</button><button type="button" class="remove" data-remove="'+item.id+'" aria-label="حذف '+escapeHtml(item.name)+'">×</button></div></div>').join('');
 }
 let toastTimer;
 function toast(message){
