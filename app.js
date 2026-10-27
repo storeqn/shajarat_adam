@@ -73,7 +73,7 @@ function card(item){
   const picture=src?'<img class="food-image" src="'+escapeHtml(src)+'" alt="'+(item.image?'':'صورة توضيحية')+'" loading="lazy" decoding="async">':placeholder(item);
   const description=item.description?'<p class="description">'+escapeHtml(item.description)+'</p>':'';
   const badge=(item.offer?'<span class="badge">عرض خاص</span>':'')+(item.badge?'<span class="badge">'+escapeHtml(item.badge)+'</span>':'');
-  const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);
+  const variants=productVariants(item);
   const hasWeights=variants.some(v=>String(v.weight||'').trim());
   const minPrice=Math.min(...variants.map(v=>v.price));
   const priceText=variants.length>1?'<span class="price-prefix">يبدأ من</span> '+fmt(minPrice):fmt(item.price);
@@ -102,7 +102,9 @@ function renderCats(){
   byId('cats').innerHTML=categories.map(cat=>'<button type="button" class="cat'+(active===cat?' active':'')+'" data-category="'+escapeHtml(cat)+'" aria-pressed="'+(active===cat)+'">'+categoryIcon(cat)+'<span>'+escapeHtml(cat)+'</span></button>').join('');
 }
 const selectedWeights={};
-function uniqueProducts(items){const seen=new Set();return items.filter(p=>{const key=p.name+'|'+p.category;if(seen.has(key))return false;seen.add(key);return true})}
+function sameVariantGroup(a,b){return !!String(a.weight||'').trim()&&!!String(b.weight||'').trim()&&a.name===b.name&&a.category===b.category&&String(a.image||'')===String(b.image||'')}
+function productVariants(item){return String(item.weight||'').trim()?menuItems.filter(p=>sameVariantGroup(p,item)): [item]}
+function uniqueProducts(items){const seen=new Set();return items.filter(p=>{const key=String(p.weight||'').trim()?['variant',p.name,p.category,p.image||''].join('|'):'item:'+p.id;if(seen.has(key))return false;seen.add(key);return true})}
 function renderMenu(){
   const query=normalize(byId('q').value);
   const terms=query.split(' ').filter(Boolean);
@@ -162,7 +164,7 @@ function showWeightChooser(item,variants){
 }
 function openWeightChoice(id){
  const item=itemMap.get(id);if(!item)return;
- const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);
+ const variants=productVariants(item);
  if(variants.length===1&&!variants[0].weight){add(id);return}
  const overlay=document.createElement('div');overlay.className='weight-dialog-backdrop';overlay.setAttribute('role','presentation');
  const dialog=document.createElement('section');dialog.className='weight-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','اختيار وزن '+item.name);
@@ -307,7 +309,7 @@ document.addEventListener('click',event=>{
   const chooseButton=event.target.closest('[data-choose]');
   if(chooseButton){openWeightChoice(Number(chooseButton.dataset.choose));return}
   const addButton=event.target.closest('[data-add]');
-  if(addButton){const item=itemMap.get(Number(addButton.dataset.add));if(item){const variants=menuItems.filter(p=>p.name===item.name&&p.category===item.category);if(variants.length>1){showWeightChooser(item,variants)}else add(item.id)}return}
+  if(addButton){const item=itemMap.get(Number(addButton.dataset.add));if(item){const variants=productVariants(item);if(variants.length>1){showWeightChooser(item,variants)}else add(item.id)}return}
   const cat=event.target.closest('[data-category]');
   if(cat){active=cat.dataset.category;renderCats();renderMenu();byId('allMenu').scrollIntoView({behavior:'smooth'});return}
   const adjust=event.target.closest('[data-change]');
