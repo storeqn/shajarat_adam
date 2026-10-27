@@ -74,3 +74,4 @@ body.weight-modal-open{overflow:hidden}
 .hero .intro{position:relative;z-index:2;text-shadow:0 2px 14px #000b}
 .hero .intro h1{filter:drop-shadow(0 2px 8px #000c)}
 @media(max-width:640px){.hero:before{background:linear-gradient(180deg,rgba(0,0,0,.66) 0%,rgba(0,0,0,.4) 36%,rgba(0,0,0,.76) 80%,#0b0a09 100%),url('assets/images/shajarat-adam-storefront.webp') center 30%/cover no-repeat,url('assets/images/hero-sweets.svg') center/cover no-repeat}}
+
