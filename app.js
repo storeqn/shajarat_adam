@@ -105,6 +105,14 @@ const selectedWeights={};
 function sameVariantGroup(a,b){return !!String(a.weight||'').trim()&&!!String(b.weight||'').trim()&&a.name===b.name&&a.category===b.category&&String(a.image||'')===String(b.image||'')}
 function productVariants(item){return String(item.weight||'').trim()?menuItems.filter(p=>sameVariantGroup(p,item)): [item]}
 function uniqueProducts(items){const seen=new Set();return items.filter(p=>{const key=String(p.weight||'').trim()?['variant',p.name,p.category,p.image||''].join('|'):'item:'+p.id;if(seen.has(key))return false;seen.add(key);return true})}
+function focusSharedProduct(){
+  const id=Number(new URLSearchParams(location.search).get('product'));
+  if(!Number.isSafeInteger(id)||id<=0||!itemMap.has(id))return;
+  const item=itemMap.get(id);active=item.category;
+  byId('q').value='';renderCats();renderPopular();renderMenu();focusSharedProduct();
+  const target=document.querySelector('[data-choose="'+id+'"]')||document.querySelector('[data-add="'+id+'"]');
+  if(target){target.closest('.card')?.scrollIntoView({block:'center',behavior:'smooth'});target.closest('.card')?.classList.add('shared-product-highlight')}
+}
 function renderMenu(){
   const query=normalize(byId('q').value);
   const terms=query.split(' ').filter(Boolean);
@@ -283,11 +291,18 @@ function sendOrder(event){
   if(!name){validationError('يرجى كتابة الاسم.',byId('customerName'));return}
   const digits=phone.replace(/[٠-٩۰-۹]/g,c=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(c)>=0?'٠١٢٣٤٥٦٧٨٩'.indexOf(c):'۰۱۲۳۴۵۶۷۸۹'.indexOf(c)));
   if(!/^07\d{9}$/.test(digits)){validationError('يرجى كتابة رقم هاتف عراقي صحيح من 11 رقماً يبدأ بـ 07.',byId('customerPhone'));return}
-  const lines=['السلام عليكم مطعم شجرة آدم','أرغب بتأكيد الطلب التالي:',''];
-  rows.forEach(({item,qty})=>{lines.push(qty+'× '+item.name,'سعر الوحدة: '+fmt(item.price),'المجموع: '+fmt(qty*item.price),'')});
-  lines.push('----------------','المجموع النهائي: '+fmt(totals().price),'','الاسم: '+name,'الهاتف: '+digits,'طريقة الاستلام: '+(mode==='delivery'?'توصيل':'استلام من المتجر'));
+  const lines=['🍬 *حلويات شجرة آدم*','طلب جديد','━━━━━━━━━━━━'];
+  rows.forEach(({item,qty},index)=>{
+    lines.push((index+1)+'. *'+item.name+'*'+(item.weight?' ('+item.weight+')':''));
+    lines.push('الكمية: '+qty+' × '+fmt(item.price));
+    lines.push('الإجمالي: '+fmt(qty*item.price));
+    // Short, stable product URL: opens the storefront and highlights the exact product ID.
+    lines.push('المنتج: https://shajarat-adam.pages.dev/?product='+encodeURIComponent(item.id));
+    lines.push('');
+  });
+  lines.push('━━━━━━━━━━━━','💰 *المجموع: '+fmt(totals().price)+'*','','👤 *بيانات الزبون*','الاسم: '+name,'الهاتف: '+digits,'الاستلام: '+(mode==='delivery'?'توصيل':'من المحل'));
   if(mode==='delivery'&&address)lines.push('العنوان: '+address);
-  if(mode==='delivery'&&deliveryLocation)lines.push('موقع التوصيل على الخريطة: '+deliveryLocationUrl());
+  if(mode==='delivery'&&deliveryLocation)lines.push('الموقع: '+deliveryLocationUrl());
   if(note)lines.push('ملاحظات: '+note);
   const url='https://wa.me/9647706848869?text='+encodeURIComponent(lines.join('\n'));
   playSound('confirm');
@@ -305,7 +320,7 @@ byId('soundToggle').addEventListener('click',()=>{
 });
 document.addEventListener('click',event=>{
   const favorite=event.target.closest('[data-favorite]');
-  if(favorite){const id=Number(favorite.dataset.favorite);if(favoriteIds.has(id))favoriteIds.delete(id);else favoriteIds.add(id);try{localStorage.setItem(favoriteKey,JSON.stringify([...favoriteIds]))}catch(_error){}categories=menuCategories();if(active==='المفضلة'&&!favoriteIds.size)active='الكل';renderCats();renderPopular();renderMenu();return}
+  if(favorite){const id=Number(favorite.dataset.favorite);if(favoriteIds.has(id))favoriteIds.delete(id);else favoriteIds.add(id);try{localStorage.setItem(favoriteKey,JSON.stringify([...favoriteIds]))}catch(_error){}categories=menuCategories();if(active==='المفضلة'&&!favoriteIds.size)active='الكل';renderCats();renderPopular();renderMenu();focusSharedProduct();return}
   const chooseButton=event.target.closest('[data-choose]');
   if(chooseButton){openWeightChoice(Number(chooseButton.dataset.choose));return}
   const addButton=event.target.closest('[data-add]');
@@ -388,7 +403,7 @@ function loadSheetMenu(){
       for(const id of Object.keys(cart))if(!itemMap.has(Number(id)))delete cart[id];
       categories=menuCategories();
       if(!categories.includes(active))active='الكل';
-      renderCats();renderPopular();renderMenu();updateCart();renderCart();
+      renderCats();renderPopular();renderMenu();focusSharedProduct();focusSharedProduct();updateCart();renderCart();
     }finally{finish()}
   };
   script.onerror=finish;
@@ -413,7 +428,7 @@ function loadApiMenu(){
    if(!incoming.length||new Set(incoming.map(p=>p.id)).size!==incoming.length)return;
    menuItems=incoming.filter(p=>p.category!=='سلايدر العروض');window.__adamBanners=incoming.filter(p=>p.category==='سلايدر العروض');itemMap=new Map(menuItems.map(p=>[p.id,p]));renderPromoFromBanners();
    categories=menuCategories();if(!categories.includes(active))active='الكل';
-   renderCats();renderPopular();renderMenu();updateCart();renderCart();
+   renderCats();renderPopular();renderMenu();focusSharedProduct();focusSharedProduct();updateCart();renderCart();
   }finally{finish()}
  };
  script.onerror=finish;const timer=setTimeout(finish,18000);
