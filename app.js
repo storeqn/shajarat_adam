@@ -293,7 +293,8 @@ function sendOrder(event){
   if(!/^07\d{9}$/.test(digits)){validationError('يرجى كتابة رقم هاتف عراقي صحيح من 11 رقماً يبدأ بـ 07.',byId('customerPhone'));return}
   const lines=['🍬 *حلويات شجرة آدم*','طلب جديد','━━━━━━━━━━━━'];
   rows.forEach(({item,qty},index)=>{
-    lines.push((index+1)+'. *'+item.name+'*'+(item.weight?' ('+item.weight+')':''));
+    lines.push((index+1)+'. *'+item.name+'*');
+    if(String(item.weight||'').trim())lines.push('⚖️ الوزن المختار: *'+String(item.weight).trim()+'*');
     lines.push('الكمية: '+qty+' × '+fmt(item.price));
     lines.push('الإجمالي: '+fmt(qty*item.price));
     // Short, stable product URL: opens the storefront and highlights the exact product ID.
