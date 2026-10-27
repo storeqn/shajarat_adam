@@ -100,7 +100,7 @@ function openForm(id=null){
  $('formTitle').textContent=p?'تعديل منتج':'إضافة منتج';
  $('delete').hidden=!p;$('active').checked=p?p.active:true;
  for(const field of ['name','price','category','description','image'])$(field).value=p?.[field]??'';
- $('weightRows').innerHTML='';if(p){const variants=products.filter(x=>x.name===p.name&&x.category===p.category);variants.forEach(v=>weightRow(v.weight||'',v.price));}else weightRow();
+ $('weightRows').innerHTML='';if(p){const variants=String(p.weight||'').trim()?products.filter(x=>x.name===p.name&&x.category===p.category&&x.image===p.image&&String(x.weight||'').trim()):[p];variants.forEach(v=>weightRow(v.weight||'',v.price));}else weightRow();
  $('offer').checked=!!p?.offer;$('oldPrice').value=p?.old_price||'';
  $('badge').value=p?.badge||'';$('badgePlain').value=p?.badge||'';
  $('imageFile').value='';toggleOffer();refreshPreview();
@@ -134,7 +134,7 @@ async function save(){
   if(new Set(variants.map(v=>v.weight)).size!==variants.length)throw new Error('يوجد وزن مكرر');
   if(offer&&(!oldPrice||variants.some(v=>Number(oldPrice)<=Number(v.price))))throw new Error('السعر القديم يجب أن يكون أكبر من أسعار جميع الأوزان');
   const edited=products.find(p=>p.id===editing);
-  const original=editing===null?[]:products.filter(p=>p.name===edited?.name&&p.category===edited?.category);
+  const original=editing===null?[]:String(edited?.weight||'').trim()?products.filter(p=>p.name===edited.name&&p.category===edited.category&&p.image===edited.image&&String(p.weight||'').trim()):products.filter(p=>p.id===editing);
   let latest=products;
   for(const v of variants){const existing=original.find(p=>p.weight===v.weight);const result=await server('saveProduct',{...product,id:existing?.id??(original.length===1&&variants.length===1?editing:null),weight:v.weight,price:Number(v.price)});latest=result.products;}
   for(const old of original){if(!variants.some(v=>v.weight===old.weight))latest=await server('deleteProduct',old.id)}
