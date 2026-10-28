@@ -23,7 +23,7 @@ const fixtures=[raw(1,'بقلاوة',10000,'نصف كيلو',{productId:'baklava
      else if(body.action==='trackEvents')result={ok:true};
      else if(body.action==='createOrder'){savedOrders.push(p);result={id:p.id}}
      else if(body.action==='updateOrder'){savedOrders=savedOrders.map(o=>o.id===p.id?{...o,status:p.status}:o);result={ok:true}}
-     else if(body.action==='uploadImage')result={url:origin+'/assets/images/logo.svg'};
+     else if(body.action==='uploadImage')result={url:'assets/images/logo.svg'};
      else throw Error('Unexpected mutation '+body.action);
      statuses.set(body.requestId,{ok:true,result});return route.fulfill({body:'{}',headers:{'access-control-allow-origin':'*'}});
     }

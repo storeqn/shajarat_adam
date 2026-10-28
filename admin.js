@@ -1,11 +1,11 @@
 'use strict';
 const $=id=>document.getElementById(id),esc=Adam.esc,money=n=>Number(n).toLocaleString('en-US')+' د.ع';
-let products=[],editing=null,busy=false,pendingImage=null,original=[],selected=new Set(),lastFocus=null,orders=[],dragged=null,serverBackups=[],serverAudit=[];
+let products=[],editing=null,busy=false,draftImages=[],original=[],selected=new Set(),lastFocus=null,orders=[],dragged=null,serverBackups=[],serverAudit=[];
 const fields=['name','category','description','image','ingredients','allergens','storage','servings','preparation'];
-let onlyMissing=false,noticeTimer;
+let onlyMissing=false,noticeTimer,imageProcessing=false,galleryGeneration=0;
 function notice(text){$('message').textContent=text;$('message').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('message').hidden=true,4500)}
 function error(text){$('error').textContent=text;$('error').hidden=false;$('saveError').textContent=text;$('saveError').hidden=false}
-function setBusy(value){busy=value;document.querySelectorAll('#save,#delete,.bulk-tools button,#reloadProducts,#settingsForm button,#exportBackup,#importBackup,#add,#addBanner').forEach(b=>b.disabled=value);$('save').textContent=value?'جارٍ الحفظ…':'حفظ المنتج'}
+function setBusy(value){busy=value;document.querySelectorAll('#save,#delete,.bulk-tools button,#reloadProducts,#settingsForm button,#exportBackup,#importBackup,#add,#addBanner,#form input,#form textarea,#form select,#form button').forEach(b=>b.disabled=value);$('save').textContent=value?'جارٍ الحفظ…':'حفظ المنتج';if(!value)refreshPreview()}
 function audit(action,name){const log=Adam.read('adam-audit-v3',[]);log.unshift({at:new Date().toISOString(),actor:'مالك المتجر — هذا الجهاز',action,name});Adam.write('adam-audit-v3',log.slice(0,100))}
 function backup(reason){return Adam.snapshot(products,reason)}
 function displayed(){const q=$('search').value.trim().toLowerCase();return Adam.groups(products.filter(p=>!p.meta.deleted&&p.category!=='__settings__')).filter(g=>(g[0].name+' '+g[0].category+' '+g[0].description).toLowerCase().includes(q)&&(!onlyMissing||!g[0].description)).sort((a,b)=>(a[0].meta.order||0)-(b[0].meta.order||0))}
@@ -20,27 +20,58 @@ function weightRow(p={weight:'',price:''}){const row=document.createElement('div
 function optionsText(values){return (values||[]).map(v=>v.label+' | '+v.price).join('\n')}
 function parseOptions(text){return text.split('\n').filter(s=>s.trim()).map(line=>{const [label,raw='0']=line.split('|').map(s=>s.trim());const price=Number(raw);if(!label||!Number.isSafeInteger(price)||price<0||price>100000000)throw new Error('تحقق من اسم الخيار وسعره');return {label,price}})}
 function openForm(id=null){
- if(busy)return;editing=id;pendingImage=null;lastFocus=document.activeElement;$('form').reset();$('error').hidden=true;$('saveError').hidden=true;
+ if(busy)return;editing=id;galleryGeneration++;imageProcessing=false;draftImages=[];lastFocus=document.activeElement;$('form').reset();$('error').hidden=true;$('saveError').hidden=true;
  const p=products.find(p=>p.id===id);original=p?products.filter(v=>Adam.groupKey(v)===Adam.groupKey(p)):[];
  $('formTitle').textContent=p?'تعديل المنتج والأوزان':'إضافة منتج';$('delete').hidden=!p;
  fields.forEach(k=>$(k).value=(['name','category','description','image'].includes(k)?p?.[k]:p?.meta?.[k])||'');
  $('price').value=p?.price??'';$('active').checked=p?.active!==false;$('available').checked=p?original.some(v=>v.meta.available!==false):true;$('allowMessage').checked=!!p?.meta.allowMessage;
  $('offer').checked=!!p?.offer;$('oldPrice').value=p?.old_price||'';$('badge').value=p?.badge||'';$('badgePlain').value=p?.badge||'';
  $('flavors').value=optionsText(p?.meta.flavors);$('packaging').value=optionsText(p?.meta.packaging);
- $('weightRows').innerHTML='';(original.length?original:[{}]).forEach(weightRow);toggleOffer();refreshPreview();$('shade').hidden=false;$('panel').hidden=false;document.body.style.overflow='hidden';$('name').focus();
+ draftImages=Adam.imageList(p).map(url=>({url}));$('extraImageUrl').value='';$('weightRows').innerHTML='';(original.length?original:[{}]).forEach(weightRow);toggleOffer();refreshPreview();$('shade').hidden=false;$('panel').hidden=false;document.body.style.overflow='hidden';$('name').focus();
 }
-function closeForm(){if(busy)return;$('shade').hidden=true;$('panel').hidden=true;document.body.style.overflow='';lastFocus?.focus()}
+function closeForm(){if(busy)return;galleryGeneration++;imageProcessing=false;$('imageFile').disabled=false;$('save').disabled=false;$('shade').hidden=true;$('panel').hidden=true;document.body.style.overflow='';lastFocus?.focus()}
 function toggleOffer(){$('offerFields').hidden=!$('offer').checked;$('badgeGeneral').hidden=$('offer').checked}
-function refreshPreview(){const src=pendingImage||$('image').value.trim();$('preview').hidden=!src;$('removeImage').hidden=!src;if(src)$('preview').src=src}
+function refreshPreview(){
+ const src=draftImages[0]?.url||draftImages[0]?.data||'';
+ $('preview').hidden=!src;$('removeImage').hidden=!src;
+ if(src)$('preview').src=src;else $('preview').removeAttribute('src');
+ $('image').value=draftImages[0]?.url||'';
+ $('galleryCount').textContent=imageProcessing?'جارٍ تجهيز الصور…':draftImages.length+' / '+Adam.MAX_PRODUCT_IMAGES+' صور — الأولى هي الصورة الرئيسية';
+ $('imageGallery').innerHTML=draftImages.map((entry,index)=>'<article class="gallery-edit-item"><img src="'+esc(entry.url||entry.data)+'" alt="صورة المنتج '+(index+1)+'" width="100" height="100"><span>'+(index===0?'الصورة الرئيسية':'الصورة '+(index+1))+'</span><div><button type="button" data-gallery-primary="'+index+'" '+(index===0?'disabled':'')+' aria-label="تعيين الصورة '+(index+1)+' رئيسية">رئيسية</button><button type="button" data-gallery-move="'+index+'" data-delta="-1" '+(index===0?'disabled':'')+' aria-label="تقديم الصورة '+(index+1)+'">↑</button><button type="button" data-gallery-move="'+index+'" data-delta="1" '+(index===draftImages.length-1?'disabled':'')+' aria-label="تأخير الصورة '+(index+1)+'">↓</button><button type="button" data-gallery-remove="'+index+'" aria-label="حذف الصورة '+(index+1)+'">حذف</button></div></article>').join('');
+ if(busy||imageProcessing)$('imageGallery').querySelectorAll('button').forEach(b=>b.disabled=true);
+}
+function syncPrimaryInput(){
+ const url=$('image').value.trim();
+ // An uploaded draft has no URL until it is saved; an empty URL field retains it.
+ if(!url&&draftImages[0]?.data)return;
+ if(url&&!Adam.validImage(url))throw new Error('استخدم رابط صورة HTTPS صالحاً');
+ if(url){if(draftImages.length)draftImages[0]={url};else draftImages.push({url});draftImages=draftImages.filter((p,i)=>i===0||p.url!==url)}
+ else if(draftImages.length)draftImages.shift();
+ refreshPreview();
+}
+function addImageUrl(){
+ if(busy||imageProcessing)return;
+ const url=$('extraImageUrl').value.trim();
+ if(!Adam.validImage(url))return error('استخدم رابط صورة HTTPS صالحاً');
+ if(draftImages.some(p=>p.url===url))return notice('هذه الصورة مضافة بالفعل');
+ if(draftImages.length>=Adam.MAX_PRODUCT_IMAGES)return error('يمكن إضافة حتى '+Adam.MAX_PRODUCT_IMAGES+' صور لكل منتج');
+ draftImages.push({url});$('extraImageUrl').value='';$('error').hidden=true;$('saveError').hidden=true;refreshPreview();
+}
+async function addImageFiles(files){
+ if(busy||imageProcessing||!files.length)return;
+ if(draftImages.length+files.length>Adam.MAX_PRODUCT_IMAGES){$('imageFile').value='';return error('يمكن إضافة حتى '+Adam.MAX_PRODUCT_IMAGES+' صور لكل منتج. احذف صورة أو اختر عدداً أقل.')}
+ const generation=galleryGeneration;imageProcessing=true;$('save').disabled=true;$('imageFile').disabled=true;refreshPreview();
+ const failures=[];
+ try{for(const file of files){try{const data=await imageFile(file);if(generation!==galleryGeneration)return;if(!draftImages.some(p=>p.data===data))draftImages.push({data});refreshPreview()}catch(e){failures.push(file.name+': '+e.message)}}}
+ finally{if(generation===galleryGeneration){imageProcessing=false;$('save').disabled=false;$('imageFile').disabled=false;$('imageFile').value='';refreshPreview();if(failures.length)error(failures.join('، '))}}
+}
 function imageFile(file){return new Promise((resolve,reject)=>{if(file.size>15000000)return reject(new Error('اختر صورة أصغر من 15 ميغابايت'));const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{try{const scale=Math.min(1,1000/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let data=canvas.toDataURL('image/jpeg',.72);if(data.length>900000)throw new Error('الصورة كبيرة؛ اختر صورة أصغر');resolve(data)}catch(e){reject(e)}finally{URL.revokeObjectURL(url)}};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('تعذر قراءة الصورة'))};img.src=url})}
 async function save(){
- if(busy)return;$('error').hidden=true;$('saveError').hidden=true;
+ if(busy||imageProcessing)return;$('error').hidden=true;$('saveError').hidden=true;
  if(!$('name').value.trim()||!$('category').value.trim())return error('اكتب الاسم والقسم');
- const image=$('image').value.trim();if(image&&!/^https:\/\//i.test(image)&&!/^assets\/images\//.test(image))return error('استخدم رابط صورة HTTPS');
+ try{syncPrimaryInput()}catch(e){return error(e.message)}
  setBusy(true);
  try{
-  let imageUrl=image;
-  if(pendingImage){const caps=await Adam.capabilities();if(caps.version<3)throw new Error('رفع الهاتف يحتاج نشر ملف backend/Code.gs المرفق؛ استخدم رابط HTTPS حتى تحديث الخادم.');const r=await Adam.mutate('uploadImage',{data:pendingImage,name:$('name').value.trim()});imageUrl=r.url}
   const variants=[...$('weightRows').children].map(row=>({id:row.dataset.id===''?null:Number(row.dataset.id),weight:row.querySelector('.weight-name').value.trim(),price:row.querySelector('.weight-price').value,available:row.querySelector('.weight-available').checked}));
   if(!variants.length)variants.push({id:original[0]?.id??null,weight:'',price:$('price').value,available:true});
   if(variants.length===1&&variants[0].price==='')variants[0].price=$('price').value;
@@ -49,6 +80,11 @@ async function save(){
   const oldPrice=Number($('oldPrice').value)||0,offer=$('offer').checked;if(offer&&variants.some(v=>oldPrice<=Number(v.price)))throw new Error('السعر القديم يجب أن يكون أكبر من جميع أسعار العرض');
   const meta={...(original[0]?.meta||{}),productId:original[0]?.meta.productId||crypto.randomUUID(),available:$('available').checked,allowMessage:$('allowMessage').checked,flavors:parseOptions($('flavors').value),packaging:parseOptions($('packaging').value)};
   ['ingredients','allergens','storage','servings','preparation'].forEach(k=>meta[k]=$(k).value.trim());
+  if(draftImages.some(p=>p.data)){
+   if((await Adam.capabilities()).version<3)throw new Error('رفع صور الهاتف يحتاج تفعيل تحديث الخادم؛ يمكنك استخدام روابط HTTPS.');
+   for(const entry of draftImages){if(!entry.data)continue;const result=await Adam.mutate('uploadImage',{data:entry.data,name:$('name').value.trim()});if(!Adam.validImage(result?.url))throw new Error('تعذر استلام رابط الصورة المرفوعة');entry.url=result.url;delete entry.data;refreshPreview()}
+  }
+  const imageUrls=Adam.imageList({image:draftImages[0]?.url||'',meta:{images:draftImages.map(p=>p.url)}});meta.images=imageUrls;const imageUrl=imageUrls[0]||'';
   const next=variants.map(v=>({id:v.id,name:$('name').value.trim(),category:$('category').value.trim(),description:$('description').value.trim(),price:Number(v.price),weight:v.weight,image:imageUrl,active:$('active').checked,offer,old_price:oldPrice,badge:offer?$('badge').value.trim():$('badgePlain').value.trim(),meta:{...meta,available:meta.available&&v.available}}));
   products=await Adam.saveGroup(original,next,products);audit('حفظ منتج',next[0].name);Adam.write('adam-menu-cache-v3',{at:Date.now(),items:products});render();setBusy(false);closeForm();notice('تم حفظ المنتج والأوزان');
  }catch(e){error(e.message);setBusy(false);try{products=await Adam.load(true);render()}catch{}}
@@ -85,7 +121,11 @@ $('bulkPrices').onclick=()=>{const percent=Number($('pricePercent').value);if(!N
 $('search').oninput=render;$('missingDescriptions').onclick=()=>{onlyMissing=!onlyMissing;$('missingDescriptions').setAttribute('aria-pressed',onlyMissing);render()};
 $('add').onclick=()=>openForm();$('addBanner').onclick=()=>{openForm();$('name').value='عرض جديد';$('category').value='سلايدر العروض';$('price').value='0';$('weightRows').innerHTML='';weightRow({weight:'',price:0})};
 $('addWeight').onclick=()=>weightRow();$('save').onclick=save;$('delete').onclick=archive;$('close').onclick=closeForm;$('shade').onclick=closeForm;$('form').onsubmit=e=>{e.preventDefault();save()};$('offer').onchange=toggleOffer;
-$('image').oninput=()=>{pendingImage=null;refreshPreview()};$('removeImage').onclick=()=>{pendingImage=null;$('image').value='';$('imageFile').value='';refreshPreview()};$('imageFile').onchange=async e=>{try{if(e.target.files[0]){pendingImage=await imageFile(e.target.files[0]);refreshPreview()}}catch(e){error(e.message)}};
+$('image').onchange=()=>{if(busy||imageProcessing)return;try{syncPrimaryInput()}catch(e){error(e.message)}};
+$('addImageUrl').onclick=addImageUrl;$('extraImageUrl').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addImageUrl()}};
+$('removeImage').onclick=()=>{if(busy||imageProcessing)return;draftImages.shift();refreshPreview()};
+$('imageFile').onchange=e=>addImageFiles([...e.target.files]);
+$('imageGallery').onclick=e=>{if(busy||imageProcessing)return;const remove=e.target.closest('[data-gallery-remove]'),primary=e.target.closest('[data-gallery-primary]'),move=e.target.closest('[data-gallery-move]');if(remove)draftImages.splice(Number(remove.dataset.galleryRemove),1);else if(primary){const index=Number(primary.dataset.galleryPrimary);draftImages.unshift(draftImages.splice(index,1)[0])}else if(move){const index=Number(move.dataset.galleryMove),target=index+Number(move.dataset.delta);if(target>=0&&target<draftImages.length)[draftImages[index],draftImages[target]]=[draftImages[target],draftImages[index]]}else return;refreshPreview()};
 $('reloadProducts').onclick=loadProducts;$('settingsForm').onsubmit=saveSettings;$('exportBackup').onclick=()=>download('adam-backup-'+Date.now()+'.json',backup('تصدير يدوي'));$('importBackup').onchange=e=>importBackup(e.target.files[0]);
 $('backupList').onclick=async e=>{const remote=e.target.closest('[data-server-backup]');if(remote){try{const b=serverBackups[Number(remote.dataset.serverBackup)],r=await Adam.jsonp({action:'backup',fileId:b.fileId});if(!r.ok)throw new Error(r.error);download('adam-server-backup.json',r.result)}catch(err){notice(err.message)}return}const b=e.target.closest('[data-download-backup]');if(b)download('adam-backup.json',Adam.read('adam-backups-v3',[])[Number(b.dataset.downloadBackup)])};$('trashList').onclick=e=>{const b=e.target.closest('[data-restore]');if(b)restore(Number(b.dataset.restore))};
 $('refreshOrders').onclick=loadOrders;$('exportOrders').onclick=()=>download('adam-orders.json',orders);$('orderList').onchange=async e=>{if(!e.target.matches('[data-order]'))return;const target=e.target;target.disabled=true;try{const caps=await Adam.capabilities();if(caps.version<3)throw new Error('تحديث الحالة يحتاج تفعيل تحديث الخادم');await Adam.mutate('updateOrder',{id:target.dataset.order,status:target.value});await loadOrders()}catch(e){notice(e.message)}finally{target.disabled=false}};

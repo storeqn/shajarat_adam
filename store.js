@@ -4,6 +4,12 @@
  const API='https://script.google.com/macros/s/AKfycbyVRN3Zb-8ttbA9wqBmae8Zzofdw6f7zN3jFGs1wRtjMGG51rWM5KSCL4bLTWMrznpC/exec';
  const SHEET='https://docs.google.com/spreadsheets/d/10oltsuuqDYiIXNPSiUMEgdXuJ2CF_eWQN9ZK3hdDt30/gviz/tq';
  const DEFAULTS={whatsapp:'9647706848869',acceptOrders:true,hoursEnabled:false,open:'09:00',close:'23:00',leadMinutes:0,maxAdvanceDays:30,zones:[],categoryOrder:[]};
+ const MAX_PRODUCT_IMAGES=8;
+ function validImage(url){return typeof url==='string'&&(/^(https:\/\/[^\s]+)$/i.test(url)||/^assets\/images\/[\w./-]+$/i.test(url))}
+ function imageList(product){
+  const values=[product?.image,...(Array.isArray(product?.meta?.images)?product.meta.images:[])];
+  return [...new Set(values.filter(v=>typeof v==='string').map(v=>v.trim()).filter(validImage))].slice(0,MAX_PRODUCT_IMAGES);
+ }
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}};
  const write=(key,data)=>{try{localStorage.setItem(key,JSON.stringify(data));return true}catch{return false}};
@@ -18,8 +24,8 @@
   const id=Number(raw.id),price=Number(raw.price),name=String(raw.name||'').trim(),category=String(raw.category||'').trim();
   if(!Number.isSafeInteger(id)||id<0||!Number.isSafeInteger(price)||price<0||!name||!category)return null;
   const decoded=unpack(raw.description),text=decoded.text,meta={...(raw.meta||{}),...decoded.meta};
-  const image=String(raw.image||'');
-  return {...raw,id,price,name,category,description:text,sourceDescription:raw.sourceDescription??String(raw.description||''),meta,image:/^(https:\/\/|assets\/images\/)/i.test(image)?image:'',active:raw.active!==false&&String(raw.active).toLowerCase()!=='false',offer:raw.offer===true||String(raw.offer).toLowerCase()==='true',old_price:Math.max(0,Number(raw.old_price)||0),weight:String(raw.weight||'').trim()};
+  const images=imageList({...raw,meta});if(Array.isArray(meta.images))meta.images=images;
+  return {...raw,id,price,name,category,description:text,sourceDescription:raw.sourceDescription??String(raw.description||''),meta,image:images[0]||'',active:raw.active!==false&&String(raw.active).toLowerCase()!=='false',offer:raw.offer===true||String(raw.offer).toLowerCase()==='true',old_price:Math.max(0,Number(raw.old_price)||0),weight:String(raw.weight||'').trim()};
  }
  function normalizeAll(rows){
   if(!Array.isArray(rows))throw new Error('استجابة المنتجات غير صالحة');
@@ -99,6 +105,6 @@
   if(config.hoursEnabled&&!isOpen({...config,acceptOrders:true},date))return 'الموعد خارج ساعات العمل المحددة.';
   return '';
  }
- root.Adam={API,SHEET,DEFAULTS,esc,read,write,pack,unpack,normalize,normalizeAll,groupKey,groups,settings,publicItems,encode,jsonp,load,capabilities,mutate,snapshot,saveGroup,isOpen,validateSchedule};
+ root.Adam={API,SHEET,DEFAULTS,MAX_PRODUCT_IMAGES,validImage,imageList,esc,read,write,pack,unpack,normalize,normalizeAll,groupKey,groups,settings,publicItems,encode,jsonp,load,capabilities,mutate,snapshot,saveGroup,isOpen,validateSchedule};
  if(typeof module!=='undefined')module.exports=root.Adam;
 })(typeof window!=='undefined'?window:globalThis);
