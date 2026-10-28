@@ -64,9 +64,10 @@ try{const saved=JSON.parse(localStorage.getItem(favoriteKey)||'[]');if(Array.isA
 const menuCategories=()=>['الكل',...(favoriteIds.size?['المفضلة']:[]),...(menuItems.some(item=>item.offer)?['العروض']:[]),...new Set(menuItems.map(item=>item.category))];
 let categories=menuCategories();
 const placeholder=item=>'<div class="food-placeholder" aria-hidden="true"><img src="assets/images/logo.svg" alt="" loading="lazy"><span class="submark">'+escapeHtml(item.category)+'</span></div>';
+const cardPhotoIndices=new Map();
 function card(item){
-  const src=typeof ADAM_IMAGES!=='undefined'?(ADAM_IMAGES[item.image]||item.image):item.image;
-  const picture=src?'<img class="food-image" src="'+escapeHtml(src)+'" alt="'+escapeHtml(item.name)+'" width="480" height="360" loading="lazy" decoding="async">':placeholder(item);
+  const images=Adam.imageList(item),index=(cardPhotoIndices.get(item.id)||0)%Math.max(1,images.length),src=productImageSource(images[index]||'',640);
+  const picture=src?'<div class="card-photos" data-photo-product="'+item.id+'" data-photo-index="'+index+'"><button type="button" class="card-photo-open" data-view-product="'+item.id+'" aria-label="عرض صور '+escapeHtml(item.name)+'"><img class="food-image" src="'+escapeHtml(src)+'" alt="'+escapeHtml(item.name)+'" width="480" height="360" loading="lazy" decoding="async" draggable="false"></button>'+(images.length>1?'<span class="card-photo-count" aria-live="polite"><span class="card-photo-counter">'+(index+1)+' / '+images.length+'</span> صور</span><button type="button" class="card-photo-arrow previous" data-card-step="-1" aria-label="الصورة السابقة لـ '+escapeHtml(item.name)+'">→</button><button type="button" class="card-photo-arrow next" data-card-step="1" aria-label="الصورة التالية لـ '+escapeHtml(item.name)+'">←</button>':'')+'</div>':placeholder(item);
   const description=item.description?'<p class="description">'+escapeHtml(item.description)+'</p>':'';
   const badge=(item.meta?.available===false?'<span class="badge sold-out">نفد مؤقتاً</span>':'')+(item.offer?'<span class="badge">عرض خاص</span>':'')+(item.badge?'<span class="badge">'+escapeHtml(item.badge)+'</span>':'');
   const variants=productVariants(item);
@@ -151,8 +152,22 @@ function productImageSource(url,width=1000){
 }
 function productGallery(item){
  const images=Adam.imageList(item);if(!images.length)return '';
- return '<section class="product-gallery" aria-label="صور '+escapeHtml(item.name)+'" tabindex="0"><div class="gallery-stage"><img class="detail-image" src="'+escapeHtml(productImageSource(images[0]))+'" alt="'+escapeHtml(item.name)+' — الصورة 1" width="480" height="360" decoding="async" draggable="false"><p class="gallery-feedback" role="status" hidden></p></div>'+(images.length>1?'<div class="gallery-navigation"><button type="button" data-gallery-step="-1" aria-label="الصورة السابقة">→</button><span class="gallery-counter" aria-live="polite">1 / '+images.length+'</span><button type="button" data-gallery-step="1" aria-label="الصورة التالية">←</button></div><div class="gallery-thumbnails" aria-label="اختيار صورة المنتج">'+images.map((url,index)=>'<button type="button" data-gallery-index="'+index+'" aria-label="عرض الصورة '+(index+1)+'" aria-pressed="'+(index===0)+'"><img src="'+escapeHtml(productImageSource(url,120))+'" alt="" width="64" height="64" loading="lazy" decoding="async"></button>').join('')+'</div>':'')+'</section>';
+ const navigation=images.length>1?'<div class="gallery-navigation"><button type="button" data-gallery-step="-1" aria-label="الصورة السابقة">→</button><span class="gallery-counter" aria-live="polite">1 / '+images.length+'</span><button type="button" data-gallery-step="1" aria-label="الصورة التالية">←</button></div>':'';
+ const thumbnails=images.length>1?'<div class="gallery-thumbnails" aria-label="اختيار صورة المنتج">'+images.map((url,index)=>'<button type="button" data-gallery-index="'+index+'" aria-label="عرض الصورة '+(index+1)+'" aria-pressed="'+(index===0)+'"><img src="'+escapeHtml(productImageSource(url,120))+'" alt="" width="64" height="64" loading="lazy" decoding="async"></button>').join('')+'</div>':'';
+ return '<section class="product-gallery" aria-label="صور '+escapeHtml(item.name)+'" tabindex="0"><div class="gallery-stage"><img class="detail-image" src="'+escapeHtml(productImageSource(images[0]))+'" alt="'+escapeHtml(item.name)+' — الصورة 1" width="480" height="360" decoding="async" draggable="false"><p class="gallery-feedback" role="status" hidden></p>'+navigation+'</div>'+thumbnails+'</section>';
 }
+function cycleCardPhoto(container,delta){
+ const item=itemMap.get(Number(container.dataset.photoProduct));if(!item)return;
+ const images=Adam.imageList(item);if(images.length<2)return;
+ const index=(Number(container.dataset.photoIndex)+delta+images.length)%images.length;
+ container.dataset.photoIndex=index;cardPhotoIndices.set(item.id,index);
+ const image=container.querySelector('.food-image');if(image){delete image.dataset.fallback;image.classList.remove('image-unavailable');image.src=productImageSource(images[index],640);image.alt=item.name+' — الصورة '+(index+1)}
+ container.querySelector('.card-photo-counter').textContent=(index+1)+' / '+images.length;
+}
+let cardSwipe=null;
+document.addEventListener('pointerdown',event=>{const container=event.target.closest('.card-photos');if(container&&!event.target.closest('[data-card-step]'))cardSwipe={container,x:event.clientX,y:event.clientY,id:event.pointerId};else cardSwipe=null});
+document.addEventListener('pointercancel',()=>{cardSwipe=null});
+document.addEventListener('pointerup',event=>{if(!cardSwipe||event.pointerId!==cardSwipe.id)return;const {container,x,y}=cardSwipe;cardSwipe=null;const dx=event.clientX-x,dy=event.clientY-y;if(container.isConnected&&Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){cycleCardPhoto(container,dx<0?1:-1);container.dataset.swipedUntil=Date.now()+400}});
 function bindProductGallery(dialog,item){
  const gallery=dialog.querySelector('.product-gallery');if(!gallery)return;
  const images=Adam.imageList(item),main=gallery.querySelector('.detail-image'),feedback=gallery.querySelector('.gallery-feedback');let index=0,startX=null;
@@ -160,7 +175,7 @@ function bindProductGallery(dialog,item){
  main.addEventListener('error',()=>{main.hidden=true;feedback.hidden=false;feedback.textContent='تعذر تحميل هذه الصورة. يمكنك اختيار صورة أخرى.'});
  gallery.addEventListener('click',event=>{const thumb=event.target.closest('[data-gallery-index]'),step=event.target.closest('[data-gallery-step]');if(thumb)select(Number(thumb.dataset.galleryIndex));else if(step)select(index+Number(step.dataset.galleryStep))});
  gallery.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();select(index+(event.key==='ArrowLeft'?1:-1))}});
- const stage=gallery.querySelector('.gallery-stage');stage.addEventListener('pointerdown',event=>{startX=event.clientX});stage.addEventListener('pointercancel',()=>{startX=null});stage.addEventListener('pointerup',event=>{if(startX!==null&&Math.abs(event.clientX-startX)>40)select(index+(event.clientX<startX?1:-1));startX=null});
+ const stage=gallery.querySelector('.gallery-stage');stage.addEventListener('pointerdown',event=>{startX=event.target.closest('button')?null:event.clientX});stage.addEventListener('pointercancel',()=>{startX=null});stage.addEventListener('pointerup',event=>{if(startX!==null&&Math.abs(event.clientX-startX)>40)select(index+(event.clientX<startX?1:-1));startX=null});
 }
 function openWeightChoice(id){
  const item=itemMap.get(id);if(!item)return;
@@ -333,6 +348,8 @@ byId('soundToggle').addEventListener('click',()=>{
   if(soundEnabled)playSound('tap');
 });
 document.addEventListener('click',event=>{
+  const cardArrow=event.target.closest('[data-card-step]');if(cardArrow){cycleCardPhoto(cardArrow.closest('.card-photos'),Number(cardArrow.dataset.cardStep));return}
+  const photo=event.target.closest('[data-view-product]');if(photo){if(Date.now()>=Number(photo.closest('.card-photos').dataset.swipedUntil||0))openWeightChoice(Number(photo.dataset.viewProduct));return}
   const favorite=event.target.closest('[data-favorite]');
   if(favorite){const id=Number(favorite.dataset.favorite),item=itemMap.get(id);if(!item)return;const on=isFavorite(item);productVariants(item).forEach(v=>favoriteIds.delete(v.id));favoriteIds.delete(Adam.groupKey(item));if(!on)favoriteIds.add(Adam.groupKey(item));try{localStorage.setItem(favoriteKey,JSON.stringify([...favoriteIds]))}catch(_error){}categories=menuCategories();if(active==='المفضلة'&&!favoriteIds.size)active='الكل';renderCats();renderPopular();renderMenu();return}
   const chooseButton=event.target.closest('[data-choose]');
@@ -348,6 +365,7 @@ document.addEventListener('click',event=>{
   if(event.target.closest('[data-open-cart]'))openCart();
 });
 document.addEventListener('error',event=>{
+  if(event.target.matches?.('.food-image')&&event.target.closest('.card-photos')){if(event.target.dataset.fallback)return;event.target.dataset.fallback='true';event.target.classList.add('image-unavailable');event.target.src='assets/images/logo.svg';return}
   if(event.target.matches?.('.food-image'))event.target.replaceWith(Object.assign(document.createElement('div'),{className:'food-placeholder',innerHTML:'<img src="assets/images/logo.svg" alt=""><span class="submark">حلويات شجرة آدم</span>'}));
 },true);
 byId('q').addEventListener('input',renderMenu);

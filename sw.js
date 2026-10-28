@@ -1,6 +1,6 @@
 'use strict';
-const VERSION='adam-shell-gallery-1',IMAGES='adam-images-v3';
-const SHELL=['./','./index.html','./style.css?v=shajarat-20261027-7','./enhancements.css?v=gallery-1','./store.js?v=gallery-1','./app.js?v=gallery-1','./data/menu.js?v=3','./data/image-map.js?v=3','./manifest.json','./assets/images/logo.svg'];
+const VERSION='adam-shell-mobile-1',IMAGES='adam-images-v3';
+const SHELL=['./','./index.html','./style.css?v=shajarat-20261027-7','./enhancements.css?v=mobile-1','./viewport.js?v=mobile-1','./store.js?v=gallery-1','./app.js?v=mobile-1','./data/menu.js?v=3','./data/image-map.js?v=3','./manifest.json','./assets/images/logo.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(VERSION).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('adam-')&&![VERSION,IMAGES].includes(k)).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
